@@ -482,6 +482,86 @@
   }
   @media (max-width: 900px) {
     .lease-split { grid-template-columns: 1fr; }
+    .sim-layout, .asset-layout { grid-template-columns: 1fr !important; }
+  }
+
+  /* 시뮬레이터 & 자산 배분 스타일 */
+  .sim-layout, .asset-layout {
+    display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start;
+  }
+  .sim-input-panel, .asset-input-panel {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 20px; position: sticky; top: 20px;
+  }
+  .sim-section-title {
+    font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .sim-field { margin-bottom: 14px; }
+  .sim-field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .sim-input-group { display: flex; align-items: center; gap: 6px; }
+  .sim-input-group input, .sim-input-group select { flex: 1; }
+  .sim-unit { font-size: 12px; color: var(--text-muted); white-space: nowrap; min-width: 30px; }
+  .sim-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .sim-result-hero {
+    background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(245,158,11,0.08));
+    border-radius: var(--radius-sm); padding: 24px; text-align: center; margin-bottom: 20px;
+  }
+  .sim-hero-title { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+  .sim-hero-value { font-size: 36px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .sim-hero-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  .sim-results-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
+  }
+  .sim-result-card {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-xs);
+    padding: 14px; text-align: center;
+  }
+  .sim-result-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .sim-result-value { font-size: 20px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .sim-result-sub { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+  .sim-verdict {
+    display: flex; align-items: center; gap: 16px; padding: 18px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  }
+  .sim-verdict-icon { font-size: 36px; }
+  .sim-verdict-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .sim-verdict-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+  .asset-category {
+    padding: 12px 14px; margin-bottom: 12px; background: rgba(255,255,255,0.02); border-radius: var(--radius-xs);
+  }
+  .asset-cat-header { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+  .asset-ratio-bars { display: flex; flex-direction: column; gap: 8px; }
+  .asset-ratio-row {
+    display: flex; align-items: center; gap: 10px; font-size: 12px;
+  }
+  .asset-ratio-label { width: 90px; color: var(--text-secondary); text-align: right; }
+  .asset-ratio-bar-bg {
+    flex: 1; height: 22px; background: var(--bg-input); border-radius: 11px; overflow: hidden; position: relative;
+  }
+  .asset-ratio-bar-fill {
+    height: 100%; border-radius: 11px; transition: width 0.5s ease;
+    display: flex; align-items: center; justify-content: flex-end; padding-right: 8px;
+    font-size: 10px; font-weight: 600; color: #fff; min-width: 0;
+  }
+  .asset-ratio-amount { width: 80px; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .asset-tips {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 16px; margin-top: 16px;
+  }
+  .asset-tip-item {
+    padding: 10px 0; border-bottom: 1px solid rgba(42,53,80,0.3); font-size: 13px;
+    color: var(--text-secondary); line-height: 1.6;
+  }
+  .asset-tip-item:last-child { border-bottom: none; }
+
+  @media (max-width: 768px) {
+    .sim-results-grid { grid-template-columns: repeat(2, 1fr); }
+    .sim-hero-value { font-size: 28px; }
   }
 
   .api-key-section { padding: 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 16px; }
@@ -828,6 +908,8 @@
   <button class="nav-tab" data-tab="listing" onclick="switchRealestateTab('listing')">매매 시세</button>
   <button class="nav-tab" data-tab="lease" onclick="switchRealestateTab('lease')">전세/월세</button>
   <button class="nav-tab" data-tab="trend" onclick="switchRealestateTab('trend')">시세 트렌드</button>
+  <button class="nav-tab" data-tab="re-simulator" onclick="switchRealestateTab('re-simulator')">🏠 구매 시뮬레이터</button>
+  <button class="nav-tab" data-tab="re-asset" onclick="switchRealestateTab('re-asset')">📊 자산 배분</button>
 </nav>
 
 <main class="main-content" id="kospiContent">
@@ -1410,6 +1492,259 @@
       </div>
     </div>
   </div>
+
+  <!-- SIMULATOR: 내가 이 아파트를 산다면? -->
+  <div class="tab-content" id="tab-re-simulator">
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="icon" style="background:rgba(239,68,68,0.15);color:var(--accent-red);">🏠</span> 내가 이 아파트를 산다면?</h2>
+      </div>
+      <div class="card-body">
+        <div class="sim-layout">
+          <!-- 입력 패널 -->
+          <div class="sim-input-panel">
+            <h3 class="sim-section-title">매물 정보</h3>
+            <div class="sim-field">
+              <label>아파트 매매가</label>
+              <div class="sim-input-group">
+                <input type="number" id="simPrice" value="90000" class="form-input" oninput="runSimulator()">
+                <span class="sim-unit">만원</span>
+              </div>
+              <div class="sim-hint" id="simPriceHint">= 9억원</div>
+            </div>
+            <div class="sim-field">
+              <label>전용면적</label>
+              <div class="sim-input-group">
+                <input type="number" id="simArea" value="84" class="form-input" oninput="runSimulator()">
+                <span class="sim-unit">m²</span>
+              </div>
+              <div class="sim-hint" id="simAreaHint">≈ 25.4평</div>
+            </div>
+
+            <h3 class="sim-section-title" style="margin-top:20px;">내 재정 상황</h3>
+            <div class="sim-field">
+              <label>보유 자금 (자기자본)</label>
+              <div class="sim-input-group">
+                <input type="number" id="simCash" value="30000" class="form-input" oninput="runSimulator()">
+                <span class="sim-unit">만원</span>
+              </div>
+              <div class="sim-hint" id="simCashHint">= 3억원</div>
+            </div>
+            <div class="sim-field">
+              <label>연소득 (세전)</label>
+              <div class="sim-input-group">
+                <input type="number" id="simIncome" value="5000" class="form-input" oninput="runSimulator()">
+                <span class="sim-unit">만원</span>
+              </div>
+              <div class="sim-hint">월 약 <span id="simMonthlyIncome">417</span>만원</div>
+            </div>
+
+            <h3 class="sim-section-title" style="margin-top:20px;">대출 조건</h3>
+            <div class="sim-field">
+              <label>대출 금리 (연)</label>
+              <div class="sim-input-group">
+                <input type="number" id="simRate" value="3.5" step="0.1" class="form-input" oninput="runSimulator()">
+                <span class="sim-unit">%</span>
+              </div>
+            </div>
+            <div class="sim-field">
+              <label>대출 기간</label>
+              <div class="sim-input-group">
+                <input type="number" id="simTerm" value="30" class="form-input" oninput="runSimulator()">
+                <span class="sim-unit">년</span>
+              </div>
+            </div>
+            <div class="sim-field">
+              <label>상환 방식</label>
+              <select id="simMethod" class="form-input" onchange="runSimulator()">
+                <option value="equal">원리금균등</option>
+                <option value="principal">원금균등</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 결과 패널 -->
+          <div class="sim-result-panel">
+            <div class="sim-result-hero" id="simHero">
+              <div class="sim-hero-title">월 상환액</div>
+              <div class="sim-hero-value" id="simMonthly">--</div>
+              <div class="sim-hero-sub" id="simMonthlyDesc">대출 정보를 입력하세요</div>
+            </div>
+
+            <div class="sim-results-grid">
+              <div class="sim-result-card">
+                <div class="sim-result-label">필요 대출금</div>
+                <div class="sim-result-value" id="simLoan">--</div>
+                <div class="sim-result-sub">매매가 - 자기자본</div>
+              </div>
+              <div class="sim-result-card">
+                <div class="sim-result-label">LTV (담보인정비율)</div>
+                <div class="sim-result-value" id="simLTV">--</div>
+                <div class="sim-result-sub" id="simLTVDesc">대출금 / 매매가</div>
+              </div>
+              <div class="sim-result-card">
+                <div class="sim-result-label">DSR (총부채원리금상환비율)</div>
+                <div class="sim-result-value" id="simDSR">--</div>
+                <div class="sim-result-sub" id="simDSRDesc">연 상환액 / 연소득</div>
+              </div>
+              <div class="sim-result-card">
+                <div class="sim-result-label">총 이자 비용</div>
+                <div class="sim-result-value" id="simTotalInterest">--</div>
+                <div class="sim-result-sub" id="simInterestDesc">대출 기간 전체</div>
+              </div>
+              <div class="sim-result-card">
+                <div class="sim-result-label">총 상환 금액</div>
+                <div class="sim-result-value" id="simTotalPayment">--</div>
+                <div class="sim-result-sub">원금 + 이자</div>
+              </div>
+              <div class="sim-result-card">
+                <div class="sim-result-label">월급 대비</div>
+                <div class="sim-result-value" id="simSalaryRatio">--</div>
+                <div class="sim-result-sub" id="simSalaryDesc">월 상환액 / 월급</div>
+              </div>
+            </div>
+
+            <!-- 판정 배너 -->
+            <div class="sim-verdict" id="simVerdict">
+              <div class="sim-verdict-icon" id="simVerdictIcon">🤔</div>
+              <div class="sim-verdict-text">
+                <div class="sim-verdict-title" id="simVerdictTitle">결과를 확인하세요</div>
+                <div class="sim-verdict-desc" id="simVerdictDesc">위에서 매물 정보와 재정 상황을 입력하면 구매 가능성을 분석합니다.</div>
+              </div>
+            </div>
+
+            <!-- 비용 브레이크다운 차트 -->
+            <div style="margin-top:20px;">
+              <h3 class="sim-section-title">비용 구성</h3>
+              <canvas id="simBreakdownChart" style="max-height:280px;"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSET: 자산 배분 대시보드 -->
+  <div class="tab-content" id="tab-re-asset">
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="icon" style="background:rgba(139,92,246,0.15);color:var(--accent-purple);">📊</span> 내 자산 배분 대시보드</h2>
+      </div>
+      <div class="card-body">
+        <div class="asset-layout">
+          <!-- 입력 -->
+          <div class="asset-input-panel">
+            <h3 class="sim-section-title">자산 입력</h3>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">각 항목에 현재 보유 금액을 입력하세요. 대략적인 금액도 괜찮아요!</p>
+
+            <div class="asset-category" style="border-left:3px solid var(--accent-red);">
+              <div class="asset-cat-header">🏠 부동산</div>
+              <div class="sim-field">
+                <label>부동산 자산 (시가)</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetRealEstate" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+                <div class="sim-hint">아파트, 오피스텔 등 시세 기준</div>
+              </div>
+            </div>
+
+            <div class="asset-category" style="border-left:3px solid var(--accent-blue);">
+              <div class="asset-cat-header">📈 주식/펀드</div>
+              <div class="sim-field">
+                <label>국내 주식</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetDomesticStock" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+              </div>
+              <div class="sim-field">
+                <label>해외 주식/ETF</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetForeignStock" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="asset-category" style="border-left:3px solid var(--accent-green);">
+              <div class="asset-cat-header">💰 안전자산</div>
+              <div class="sim-field">
+                <label>예적금/CMA</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetSavings" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+              </div>
+              <div class="sim-field">
+                <label>현금</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetCash" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="asset-category" style="border-left:3px solid var(--accent-yellow);">
+              <div class="asset-cat-header">🪙 기타</div>
+              <div class="sim-field">
+                <label>연금/보험</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetPension" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+              </div>
+              <div class="sim-field">
+                <label>코인/금/기타</label>
+                <div class="sim-input-group">
+                  <input type="number" id="assetOther" value="0" class="form-input" oninput="updateAssetDashboard()">
+                  <span class="sim-unit">만원</span>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="saveAssetData()">💾 자산 정보 저장</button>
+            <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="loadAssetData()">📂 저장된 데이터 불러오기</button>
+          </div>
+
+          <!-- 결과 -->
+          <div class="asset-result-panel">
+            <div class="sim-result-hero" style="background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1));">
+              <div class="sim-hero-title">총 자산</div>
+              <div class="sim-hero-value" id="assetTotal">0원</div>
+              <div class="sim-hero-sub" id="assetTotalDesc">자산을 입력해주세요</div>
+            </div>
+
+            <!-- 파이 차트 -->
+            <div style="margin:20px 0;">
+              <canvas id="assetPieChart" style="max-height:300px;"></canvas>
+            </div>
+
+            <!-- 자산 비율 바 -->
+            <div class="asset-ratio-bars" id="assetRatioBars">
+              <div style="text-align:center;color:var(--text-muted);padding:20px;">자산을 입력하면 비율이 표시됩니다</div>
+            </div>
+
+            <!-- 투자자 유형 진단 -->
+            <div class="sim-verdict" id="assetVerdict" style="margin-top:20px;">
+              <div class="sim-verdict-icon" id="assetVerdictIcon">🎯</div>
+              <div class="sim-verdict-text">
+                <div class="sim-verdict-title" id="assetVerdictTitle">내 투자 성향은?</div>
+                <div class="sim-verdict-desc" id="assetVerdictDesc">자산을 입력하면 투자 성향을 진단합니다.</div>
+              </div>
+            </div>
+
+            <!-- 조언 카드 -->
+            <div class="asset-tips" id="assetTips" style="display:none;">
+              <h3 class="sim-section-title">💡 자산 배분 팁</h3>
+              <div id="assetTipsContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- Add Stock Modal -->
@@ -2266,6 +2601,309 @@ function clearAptSearch(tabName) {
   searchInput.focus();
 }
 
+// ============================================
+// 아파트 구매 시뮬레이터
+// ============================================
+let simBreakdownChart = null;
+
+function formatWon(man) {
+  if (man >= 10000) {
+    const eok = Math.floor(man / 10000);
+    const rest = man % 10000;
+    return rest > 0 ? `${eok}억 ${rest.toLocaleString()}만원` : `${eok}억`;
+  }
+  return `${man.toLocaleString()}만원`;
+}
+
+function runSimulator() {
+  const price = parseInt(document.getElementById('simPrice').value) || 0;
+  const area = parseFloat(document.getElementById('simArea').value) || 0;
+  const cash = parseInt(document.getElementById('simCash').value) || 0;
+  const income = parseInt(document.getElementById('simIncome').value) || 0;
+  const rate = parseFloat(document.getElementById('simRate').value) || 0;
+  const term = parseInt(document.getElementById('simTerm').value) || 1;
+  const method = document.getElementById('simMethod').value;
+
+  // 힌트 업데이트
+  document.getElementById('simPriceHint').textContent = `= ${formatWon(price)}`;
+  document.getElementById('simAreaHint').textContent = `≈ ${(area / 3.306).toFixed(1)}평`;
+  document.getElementById('simCashHint').textContent = `= ${formatWon(cash)}`;
+  document.getElementById('simMonthlyIncome').textContent = Math.round(income / 12).toLocaleString();
+
+  if (price <= 0) return;
+
+  const loan = Math.max(price - cash, 0);
+  const monthlyRate = (rate / 100) / 12;
+  const totalMonths = term * 12;
+
+  // 월 상환액 계산
+  let monthlyPayment = 0;
+  let totalInterest = 0;
+
+  if (loan <= 0 || rate <= 0) {
+    monthlyPayment = 0;
+    totalInterest = 0;
+  } else if (method === 'equal') {
+    // 원리금균등
+    monthlyPayment = Math.round(loan * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) / (Math.pow(1 + monthlyRate, totalMonths) - 1));
+    totalInterest = monthlyPayment * totalMonths - loan;
+  } else {
+    // 원금균등 (초회 기준)
+    const principalPart = loan / totalMonths;
+    monthlyPayment = Math.round(principalPart + loan * monthlyRate);
+    // 총 이자 = 합산
+    totalInterest = 0;
+    for (let i = 0; i < totalMonths; i++) {
+      totalInterest += (loan - (loan / totalMonths) * i) * monthlyRate;
+    }
+    totalInterest = Math.round(totalInterest);
+  }
+
+  const totalPayment = loan + totalInterest;
+  const ltv = price > 0 ? ((loan / price) * 100).toFixed(1) : 0;
+  const annualPayment = monthlyPayment * 12;
+  const dsr = income > 0 ? ((annualPayment / income) * 100).toFixed(1) : 0;
+  const monthlyIncome = Math.round(income / 12);
+  const salaryRatio = monthlyIncome > 0 ? ((monthlyPayment / monthlyIncome) * 100).toFixed(0) : 0;
+
+  // 결과 표시
+  document.getElementById('simMonthly').textContent = `${monthlyPayment.toLocaleString()}만원`;
+  document.getElementById('simMonthlyDesc').textContent = method === 'equal' ? '원리금균등 기준 매달 동일' : '원금균등 첫 달 기준 (점점 줄어듦)';
+  document.getElementById('simLoan').textContent = formatWon(loan);
+  document.getElementById('simLTV').textContent = `${ltv}%`;
+  document.getElementById('simDSR').textContent = `${dsr}%`;
+  document.getElementById('simTotalInterest').textContent = formatWon(totalInterest);
+  document.getElementById('simTotalPayment').textContent = formatWon(totalPayment);
+  document.getElementById('simSalaryRatio').textContent = `${salaryRatio}%`;
+  document.getElementById('simSalaryDesc').textContent = `월급의 ${salaryRatio}%를 상환`;
+
+  // LTV 설명
+  const ltvNum = parseFloat(ltv);
+  if (ltvNum <= 40) document.getElementById('simLTVDesc').textContent = '안정적 (규제지역 기준 OK)';
+  else if (ltvNum <= 60) document.getElementById('simLTVDesc').textContent = '보통 (일반지역 기준 OK)';
+  else if (ltvNum <= 70) document.getElementById('simLTVDesc').textContent = '주의 (한도 근접)';
+  else document.getElementById('simLTVDesc').textContent = '⚠️ 대출 한도 초과 가능';
+
+  // DSR 설명
+  const dsrNum = parseFloat(dsr);
+  if (dsrNum <= 30) document.getElementById('simDSRDesc').textContent = '여유로움 (30% 이하)';
+  else if (dsrNum <= 40) document.getElementById('simDSRDesc').textContent = '적정 수준 (규제 기준 OK)';
+  else if (dsrNum <= 50) document.getElementById('simDSRDesc').textContent = '⚠️ 부담 (DSR 규제 초과 가능)';
+  else document.getElementById('simDSRDesc').textContent = '🚨 위험 (생활비 부족 우려)';
+
+  // 판정
+  const verdict = document.getElementById('simVerdict');
+  const vIcon = document.getElementById('simVerdictIcon');
+  const vTitle = document.getElementById('simVerdictTitle');
+  const vDesc = document.getElementById('simVerdictDesc');
+
+  if (cash >= price) {
+    verdict.style.borderLeft = '4px solid var(--accent-green)';
+    vIcon.textContent = '🎉';
+    vTitle.textContent = '현금으로 풀 매수 가능!';
+    vDesc.textContent = `보유 자금만으로 매매가를 충당할 수 있어요. 대출 없이 구매 가능합니다. 남는 자금: ${formatWon(cash - price)}`;
+  } else if (dsrNum <= 40 && ltvNum <= 60) {
+    verdict.style.borderLeft = '4px solid var(--accent-green)';
+    vIcon.textContent = '👍';
+    vTitle.textContent = '구매 가능성 높음';
+    vDesc.textContent = `DSR ${dsr}%, LTV ${ltv}%로 대출 규제를 충족합니다. 월 ${monthlyPayment.toLocaleString()}만원 상환은 월급 대비 ${salaryRatio}%로 감당 가능한 수준이에요.`;
+  } else if (dsrNum <= 50 && ltvNum <= 70) {
+    verdict.style.borderLeft = '4px solid var(--accent-yellow)';
+    vIcon.textContent = '⚠️';
+    vTitle.textContent = '구매 가능하지만 부담 있음';
+    vDesc.textContent = `DSR ${dsr}%로 규제 한도에 가깝고, 월 상환액이 월급의 ${salaryRatio}%입니다. 생활비를 고려해 신중히 결정하세요. 자기자본을 더 늘리면 좋겠어요.`;
+  } else {
+    verdict.style.borderLeft = '4px solid var(--accent-red)';
+    vIcon.textContent = '🚨';
+    vTitle.textContent = '구매 어려움 — 자금 계획 재검토 필요';
+    vDesc.textContent = `DSR ${dsr}%로 대출 한도를 초과하거나 LTV ${ltv}%가 너무 높아요. 자기자본을 ${formatWon(Math.max(0, Math.round(price * 0.4 - cash) + cash))} 이상으로 늘리거나, 더 낮은 가격대를 검토해보세요.`;
+  }
+
+  // 비용 구성 차트
+  const ctx = document.getElementById('simBreakdownChart').getContext('2d');
+  if (simBreakdownChart) simBreakdownChart.destroy();
+
+  const acqTax = Math.round(price * 0.011); // 취득세 약 1.1%
+  simBreakdownChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['자기자본', '대출 원금', '대출 이자', '취득세 등'],
+      datasets: [{
+        data: [cash > price ? price : cash, loan, totalInterest, acqTax],
+        backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#f59e0b'],
+        borderWidth: 0,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#b8c5d6', font: { size: 12 }, padding: 16 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${formatWon(ctx.raw)} (${((ctx.raw / (price + totalInterest + acqTax)) * 100).toFixed(1)}%)`
+          }
+        }
+      }
+    }
+  });
+}
+
+// ============================================
+// 자산 배분 대시보드
+// ============================================
+let assetPieChart = null;
+
+function getAssetValues() {
+  return {
+    realEstate: parseInt(document.getElementById('assetRealEstate').value) || 0,
+    domesticStock: parseInt(document.getElementById('assetDomesticStock').value) || 0,
+    foreignStock: parseInt(document.getElementById('assetForeignStock').value) || 0,
+    savings: parseInt(document.getElementById('assetSavings').value) || 0,
+    cash: parseInt(document.getElementById('assetCash').value) || 0,
+    pension: parseInt(document.getElementById('assetPension').value) || 0,
+    other: parseInt(document.getElementById('assetOther').value) || 0,
+  };
+}
+
+function saveAssetData() {
+  localStorage.setItem('my_asset_data', JSON.stringify(getAssetValues()));
+  showToast('자산 정보가 저장되었습니다!');
+}
+
+function loadAssetData() {
+  const saved = localStorage.getItem('my_asset_data');
+  if (!saved) { showToast('저장된 데이터가 없습니다'); return; }
+  try {
+    const data = JSON.parse(saved);
+    document.getElementById('assetRealEstate').value = data.realEstate || 0;
+    document.getElementById('assetDomesticStock').value = data.domesticStock || 0;
+    document.getElementById('assetForeignStock').value = data.foreignStock || 0;
+    document.getElementById('assetSavings').value = data.savings || 0;
+    document.getElementById('assetCash').value = data.cash || 0;
+    document.getElementById('assetPension').value = data.pension || 0;
+    document.getElementById('assetOther').value = data.other || 0;
+    updateAssetDashboard();
+    showToast('저장된 데이터를 불러왔습니다!');
+  } catch(e) { showToast('데이터 로드 실패'); }
+}
+
+function updateAssetDashboard() {
+  const v = getAssetValues();
+  const totalStock = v.domesticStock + v.foreignStock;
+  const totalSafe = v.savings + v.cash;
+  const total = v.realEstate + totalStock + totalSafe + v.pension + v.other;
+
+  // 총 자산
+  document.getElementById('assetTotal').textContent = total > 0 ? formatWon(total) : '0원';
+  document.getElementById('assetTotalDesc').textContent = total > 0 ? `부동산 ${formatWon(v.realEstate)} | 금융 ${formatWon(totalStock + totalSafe + v.pension + v.other)}` : '자산을 입력해주세요';
+
+  if (total <= 0) return;
+
+  // 비율 계산
+  const categories = [
+    { name: '부동산', value: v.realEstate, color: '#ef4444' },
+    { name: '국내 주식', value: v.domesticStock, color: '#3b82f6' },
+    { name: '해외 주식', value: v.foreignStock, color: '#60a5fa' },
+    { name: '예적금', value: v.savings, color: '#10b981' },
+    { name: '현금', value: v.cash, color: '#34d399' },
+    { name: '연금/보험', value: v.pension, color: '#f59e0b' },
+    { name: '기타', value: v.other, color: '#8b5cf6' },
+  ].filter(c => c.value > 0);
+
+  // 파이 차트
+  const ctx = document.getElementById('assetPieChart').getContext('2d');
+  if (assetPieChart) assetPieChart.destroy();
+  assetPieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: categories.map(c => c.name),
+      datasets: [{
+        data: categories.map(c => c.value),
+        backgroundColor: categories.map(c => c.color),
+        borderWidth: 0, hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true, cutout: '55%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#b8c5d6', font: { size: 12 }, padding: 14 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${formatWon(ctx.raw)} (${((ctx.raw / total) * 100).toFixed(1)}%)`
+          }
+        }
+      }
+    }
+  });
+
+  // 비율 바
+  const barsDiv = document.getElementById('assetRatioBars');
+  barsDiv.innerHTML = categories.map(c => {
+    const pct = ((c.value / total) * 100).toFixed(1);
+    return `<div class="asset-ratio-row">
+      <div class="asset-ratio-label">${c.name}</div>
+      <div class="asset-ratio-bar-bg">
+        <div class="asset-ratio-bar-fill" style="width:${pct}%;background:${c.color};">${pct > 8 ? pct + '%' : ''}</div>
+      </div>
+      <div class="asset-ratio-amount">${formatWon(c.value)}</div>
+    </div>`;
+  }).join('');
+
+  // 투자자 유형 진단
+  const realEstateRatio = (v.realEstate / total) * 100;
+  const stockRatio = (totalStock / total) * 100;
+  const safeRatio = (totalSafe / total) * 100;
+  const pensionRatio = (v.pension / total) * 100;
+
+  const vIcon = document.getElementById('assetVerdictIcon');
+  const vTitle = document.getElementById('assetVerdictTitle');
+  const vDesc = document.getElementById('assetVerdictDesc');
+  const verdict = document.getElementById('assetVerdict');
+
+  if (realEstateRatio > 70) {
+    verdict.style.borderLeft = '4px solid var(--accent-red)';
+    vIcon.textContent = '🏠';
+    vTitle.textContent = '부동산 집중형';
+    vDesc.textContent = `자산의 ${realEstateRatio.toFixed(0)}%가 부동산에 집중되어 있어요. 유동성이 부족할 수 있으니 금융자산 비중을 늘리는 것을 고려해보세요.`;
+  } else if (stockRatio > 60) {
+    verdict.style.borderLeft = '4px solid var(--accent-blue)';
+    vIcon.textContent = '📈';
+    vTitle.textContent = '공격적 투자형';
+    vDesc.textContent = `주식/펀드 비중이 ${stockRatio.toFixed(0)}%로 높아요. 수익 잠재력은 높지만, 시장 하락 시 큰 손실 가능성이 있어요. 안전자산과 균형을 맞춰보세요.`;
+  } else if (safeRatio > 60) {
+    verdict.style.borderLeft = '4px solid var(--accent-green)';
+    vIcon.textContent = '🛡️';
+    vTitle.textContent = '안정 추구형';
+    vDesc.textContent = `안전자산(예적금/현금)이 ${safeRatio.toFixed(0)}%로 높아요. 원금 보존은 좋지만 인플레이션을 고려하면 일부를 투자자산으로 옮기는 것이 유리할 수 있어요.`;
+  } else if (stockRatio >= 30 && safeRatio >= 20 && realEstateRatio <= 50) {
+    verdict.style.borderLeft = '4px solid var(--accent-purple)';
+    vIcon.textContent = '⚖️';
+    vTitle.textContent = '균형잡힌 투자형';
+    vDesc.textContent = `부동산 ${realEstateRatio.toFixed(0)}%, 주식 ${stockRatio.toFixed(0)}%, 안전자산 ${safeRatio.toFixed(0)}%로 균형 잡힌 포트폴리오예요! 리스크와 수익 사이에서 좋은 균형을 유지하고 있어요.`;
+  } else {
+    verdict.style.borderLeft = '4px solid var(--accent-yellow)';
+    vIcon.textContent = '🎯';
+    vTitle.textContent = '혼합형 포트폴리오';
+    vDesc.textContent = `다양한 자산에 분산 투자하고 있어요. 부동산 ${realEstateRatio.toFixed(0)}%, 주식 ${stockRatio.toFixed(0)}%, 안전자산 ${safeRatio.toFixed(0)}%. 목표에 맞게 비중을 조정해보세요.`;
+  }
+
+  // 자산 배분 팁
+  const tipsDiv = document.getElementById('assetTips');
+  const tipsContent = document.getElementById('assetTipsContent');
+  tipsDiv.style.display = 'block';
+  let tips = [];
+
+  if (safeRatio < 10) tips.push('🚨 <strong>비상금 부족</strong> — 최소 3~6개월 생활비는 현금/예금으로 보유하세요.');
+  if (realEstateRatio > 70) tips.push('🏠 <strong>부동산 과다</strong> — 자산의 70% 이상이 부동산이면 유동성 위기에 취약해요.');
+  if (stockRatio > 0 && v.foreignStock === 0) tips.push('🌍 <strong>해외 분산 고려</strong> — 국내 주식만 보유 중이에요. 해외 ETF로 지역 분산을 고려해보세요.');
+  if (pensionRatio < 5 && total > 10000) tips.push('📋 <strong>연금 준비</strong> — 연금/보험 비중이 낮아요. 연금저축이나 IRP를 통해 세제 혜택도 받아보세요.');
+  if (stockRatio > 50 && safeRatio < 20) tips.push('⚖️ <strong>균형 조절</strong> — 주식 비중이 높고 안전자산이 적어요. 시장 변동에 대비해 일부 안전자산으로 옮기세요.');
+  if (tips.length === 0) tips.push('✅ 전반적으로 양호한 자산 배분입니다. 정기적으로 리밸런싱해주세요!');
+
+  tipsContent.innerHTML = tips.map(t => `<div class="asset-tip-item">${t}</div>`).join('');
+}
+
 function resetFilters(tabName) {
   const searchInput = document.getElementById(`${tabName}Search`);
   const areaSelect = document.getElementById(`${tabName}AreaFilter`);
@@ -2288,6 +2926,8 @@ function switchRealestateTab(tabName) {
     else if (tabName === 'listing') loadListingData();
     else if (tabName === 'lease') loadLeaseData();
     else if (tabName === 'trend') loadPriceTrend();
+    else if (tabName === 're-simulator') runSimulator();
+    else if (tabName === 're-asset') { loadAssetData(); updateAssetDashboard(); }
   }, 100);
 }
 
