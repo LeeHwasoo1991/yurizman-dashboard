@@ -328,6 +328,57 @@
   .refresh-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
 
   /* Chart Guide */
+  /* 용어사전 아코디언 */
+  .glossary-card {
+    border: 1px solid var(--border); border-radius: var(--radius-xs);
+    margin-bottom: 8px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .glossary-card:hover { border-color: rgba(59,130,246,0.3); }
+  .glossary-card.open { border-color: var(--accent-blue); }
+  .glossary-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; cursor: pointer; user-select: none;
+    background: var(--bg-card); transition: background 0.2s;
+  }
+  .glossary-header:hover { background: var(--bg-card-hover); }
+  .glossary-card.open .glossary-header { background: rgba(59,130,246,0.06); }
+  .glossary-term { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .glossary-term-en { font-size: 11px; color: var(--text-muted); margin-left: 8px; font-weight: 400; }
+  .glossary-tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    margin-left: auto; margin-right: 12px; white-space: nowrap;
+  }
+  .glossary-tag.basic { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+  .glossary-tag.inter { background: rgba(59,130,246,0.15); color: var(--accent-blue-light); }
+  .glossary-tag.adv { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+  .glossary-arrow {
+    font-size: 12px; color: var(--text-muted); transition: transform 0.3s;
+  }
+  .glossary-card.open .glossary-arrow { transform: rotate(180deg); }
+  .glossary-body {
+    max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 18px; background: rgba(15,23,41,0.4);
+  }
+  .glossary-card.open .glossary-body {
+    max-height: 400px; padding: 16px 18px;
+  }
+  .glossary-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+  .glossary-desc .example {
+    display: block; margin-top: 10px; padding: 10px 14px; background: var(--bg-input);
+    border-radius: var(--radius-xs); border-left: 3px solid var(--accent-blue);
+    font-size: 12px; color: var(--text-muted); line-height: 1.6;
+  }
+  .glossary-count { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .glossary-hidden { display: none; }
+
+  .chart-explain {
+    margin-top: 14px; padding: 12px 16px; background: rgba(59,130,246,0.06);
+    border: 1px solid rgba(59,130,246,0.15); border-radius: var(--radius-xs);
+    font-size: 12px; color: var(--text-secondary); line-height: 1.7;
+  }
+  .chart-explain strong { color: var(--text-primary); }
+  .chart-explain em { color: var(--accent-blue-light); font-style: normal; font-weight: 600; }
+
   .chart-guide {
     padding: 16px 22px; border-top: 1px solid var(--border);
     background: rgba(15,23,41,0.6);
@@ -888,6 +939,7 @@
   <button class="nav-tab" data-tab="alert" onclick="switchTab('alert')">알림</button>
   <button class="nav-tab" data-tab="simulator" onclick="switchTab('simulator')">모의투자</button>
   <button class="nav-tab" data-tab="memo" onclick="switchTab('memo')">메모</button>
+  <button class="nav-tab" data-tab="glossary" onclick="switchTab('glossary')">📖 용어사전</button>
 </nav>
 
 <!-- REALESTATE HEADER -->
@@ -1148,16 +1200,34 @@
   <div class="tab-content" id="tab-analysis">
     <div class="dashboard-grid">
       <div class="card full-width">
-        <div class="card-header"><h2><span class="icon" style="background:rgba(139,92,246,0.15);color:var(--accent-purple)">A</span> 종목 비교 분석</h2></div>
-        <div class="card-body"><canvas id="comparisonChart" height="300"></canvas></div>
+        <div class="card-header">
+          <h2><span class="icon" style="background:rgba(139,92,246,0.15);color:var(--accent-purple)">A</span> 종목 비교 분석 <small style="font-size:11px;color:var(--text-muted);font-weight:400;">(30일 수익률 비교)</small></h2>
+          <div id="comparisonLoading" style="font-size:11px;color:var(--accent-yellow);display:none;">데이터 로딩중...</div>
+        </div>
+        <div class="card-body">
+          <div style="height:320px;position:relative;"><canvas id="comparisonChart"></canvas></div>
+          <div class="chart-explain">
+            <strong>📊 이 차트는?</strong> 최근 30일간 관심 종목들의 <em>수익률 변화(%)</em>를 비교합니다. 첫날을 0%로 놓고 각 종목이 얼마나 올랐는지/내렸는지를 보여줘요. 주가 자체가 아니라 <em>등락 비율</em>이라 가격이 다른 종목끼리도 공정하게 비교할 수 있어요.
+          </div>
+        </div>
       </div>
       <div class="card">
-        <div class="card-header"><h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue-light)">%</span> 등락률 비교</h2></div>
-        <div class="card-body"><canvas id="changeRateChart" height="280"></canvas></div>
+        <div class="card-header"><h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue-light)">%</span> 등락률 비교 <small style="font-size:11px;color:var(--text-muted);font-weight:400;">(오늘 하루)</small></h2></div>
+        <div class="card-body">
+          <div style="height:280px;position:relative;"><canvas id="changeRateChart"></canvas></div>
+          <div class="chart-explain">
+            <strong>📈 이 차트는?</strong> 전일 대비 <em>오늘의 등락률(%)</em>을 보여줍니다. <span style="color:var(--accent-red);">빨간색은 상승</span>, <span style="color:var(--accent-blue);">파란색은 하락</span>. 같은 날 종목별로 얼마나 움직였는지 한눈에 비교할 수 있어요.
+          </div>
+        </div>
       </div>
       <div class="card">
-        <div class="card-header"><h2><span class="icon" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">V</span> 거래량 비교</h2></div>
-        <div class="card-body"><canvas id="volumeCompareChart" height="280"></canvas></div>
+        <div class="card-header"><h2><span class="icon" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">V</span> 거래량 비교 <small style="font-size:11px;color:var(--text-muted);font-weight:400;">(오늘)</small></h2></div>
+        <div class="card-body">
+          <div style="height:280px;position:relative;"><canvas id="volumeCompareChart"></canvas></div>
+          <div class="chart-explain">
+            <strong>📦 이 차트는?</strong> 오늘 하루 동안 <em>얼마나 많이 거래</em>됐는지를 비교합니다. 거래량이 급증하면 시장의 관심이 쏠리고 있다는 신호예요. 가격 변동과 함께 보면 매매 타이밍을 판단하는 데 도움됩니다.
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1238,6 +1308,24 @@
       </div>
     </div>
   </div>
+
+  <!-- GLOSSARY: 주식 용어사전 -->
+  <div class="tab-content" id="tab-glossary">
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="icon" style="background:rgba(245,158,11,0.15);color:var(--accent-yellow)">📖</span> 주식 용어사전</h2>
+      </div>
+      <div class="card-body" style="padding:16px 20px;">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">주식 초보자를 위한 필수 용어 모음입니다. 클릭하면 설명이 열려요!</p>
+        <div class="glossary-search-wrap">
+          <input type="text" class="form-input" id="glossarySearch" placeholder="🔍 용어 검색..." oninput="filterGlossary()" style="width:100%;margin-bottom:16px;">
+        </div>
+        <div class="glossary-count" id="glossaryCount"></div>
+        <div class="glossary-list" id="glossaryList"></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- REALESTATE CONTENT -->
@@ -3677,6 +3765,7 @@ function renderVolumeChartJS(data) {
 }
 
 async function renderAnalysisCharts() {
+  // 등락률 비교 (즉시 렌더)
   const ctx1 = document.getElementById('changeRateChart');
   if (changeRateChartJS) changeRateChartJS.destroy();
   if (ctx1) {
@@ -3693,13 +3782,14 @@ async function renderAnalysisCharts() {
         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw.toFixed(2)+'%' } } },
         scales: {
-          x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', callback: v => v+'%' } },
-          y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 12, weight: '500' } } }
+          x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#b8c5d6', callback: v => v+'%' } },
+          y: { grid: { display: false }, ticks: { color: '#b8c5d6', font: { size: 12, weight: '500' } } }
         }
       }
     });
   }
 
+  // 거래량 비교 (즉시 렌더)
   const ctx2 = document.getElementById('volumeCompareChart');
   if (volumeCompareChartJS) volumeCompareChartJS.destroy();
   if (ctx2) {
@@ -3714,33 +3804,42 @@ async function renderAnalysisCharts() {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, padding: 16 } },
+          legend: { position: 'right', labels: { color: '#b8c5d6', font: { size: 12 }, usePointStyle: true, padding: 16 } },
           tooltip: { callbacks: { label: c => c.label+': '+(c.raw/10000).toFixed(0)+'만주' } }
         }
       }
     });
   }
 
+  // 종목 비교 분석 (병렬 fetch로 속도 개선)
   const ctx3 = document.getElementById('comparisonChart');
   if (comparisonChartJS) comparisonChartJS.destroy();
   if (ctx3) {
+    const loadingEl = document.getElementById('comparisonLoading');
+    if (loadingEl) loadingEl.style.display = 'block';
+
+    const targets = watchlist.slice(0, 5);
+    // 병렬로 모든 종목 데이터 동시 요청
+    const results = await Promise.allSettled(
+      targets.map(s => fetchChartData(s.code, 30).then(data => ({ stock: s, data })))
+    );
+
     const datasets = [];
     const allLabels = new Set();
 
-    for (let i = 0; i < Math.min(watchlist.length, 5); i++) {
-      const s = watchlist[i];
-      const data = await fetchChartData(s.code, 30);
-      if (data && data.length > 0) {
-        const base = data[0].close;
-        const normalized = data.map(d => ({ time: d.time, val: ((d.close - base) / base * 100) }));
-        normalized.forEach(d => allLabels.add(d.time));
-        datasets.push({
-          label: s.name, data: normalized.map(d => d.val),
-          borderColor: s.color || STOCK_COLORS[i], backgroundColor: 'transparent',
-          borderWidth: 2, pointRadius: 0, tension: 0.3
-        });
-      }
-    }
+    results.forEach((result, i) => {
+      if (result.status !== 'fulfilled' || !result.value.data || result.value.data.length === 0) return;
+      const { stock, data } = result.value;
+      const base = data[0].close;
+      if (base <= 0) return;
+      const normalized = data.map(d => ({ time: d.time, val: ((d.close - base) / base * 100) }));
+      normalized.forEach(d => allLabels.add(d.time));
+      datasets.push({
+        label: stock.name, data: normalized.map(d => d.val),
+        borderColor: stock.color || STOCK_COLORS[i], backgroundColor: 'transparent',
+        borderWidth: 2.5, pointRadius: 0, tension: 0.3
+      });
+    });
 
     const sortedLabels = [...allLabels].sort();
     comparisonChartJS = new Chart(ctx3, {
@@ -3748,14 +3847,17 @@ async function renderAnalysisCharts() {
       data: { labels: sortedLabels.map(l => l.substring(5)), datasets },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true } } },
+        plugins: { legend: { labels: { color: '#b8c5d6', font: { size: 12 }, usePointStyle: true } } },
         scales: {
-          x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', maxTicksLimit: 10 } },
-          y: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', callback: v => v.toFixed(1)+'%' } }
+          x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#b8c5d6', maxTicksLimit: 10 } },
+          y: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#b8c5d6', callback: v => v.toFixed(1)+'%' },
+            title: { display: true, text: '수익률 (%)', color: '#8494a7', font: { size: 11 } } }
         },
         interaction: { mode: 'index', intersect: false }
       }
     });
+
+    if (loadingEl) loadingEl.style.display = 'none';
   }
 }
 
@@ -3794,11 +3896,12 @@ async function loadAllNews() {
 }
 
 async function fetchNewsForStock(stock) {
+  // 1차: Google News RSS (프록시 경유)
   try {
     const query = encodeURIComponent(stock.name + ' 주식');
     const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=ko&gl=KR&ceid=KR:ko`;
-    const text = await fetchWithProxy(rssUrl);
-    if (text) {
+    const text = await fetchWithProxy(rssUrl, 4000);
+    if (text && text.includes('<item>')) {
       const parser = new DOMParser();
       const xml = parser.parseFromString(text, 'text/xml');
       const items = xml.querySelectorAll('item');
@@ -3815,15 +3918,17 @@ async function fetchNewsForStock(stock) {
       });
       if (news.length > 0) return news;
     }
-  } catch(e) {}
+  } catch(e) { console.log('[뉴스] Google RSS 실패:', stock.name, e.message); }
 
-  return [{
-    title: `${stock.name} 최신 뉴스 보기 (네이버 금융)`,
-    link: `https://finance.naver.com/item/news.naver?code=${stock.code}`,
-    date: new Date().toISOString(),
-    source: '네이버 금융',
-    stock: stock.name, stockCode: stock.code
-  }];
+  // 2차: 네이버 금융 뉴스 링크 생성 (프록시 불필요)
+  const now = new Date();
+  const naverLink = `https://finance.naver.com/item/news.naver?code=${stock.code}`;
+  const naverMain = `https://finance.naver.com/item/main.naver?code=${stock.code}`;
+  return [
+    { title: `📰 ${stock.name} 최신 뉴스 보기`, link: naverLink, date: now.toISOString(), source: '네이버 금융', stock: stock.name, stockCode: stock.code },
+    { title: `📊 ${stock.name} 종목 정보 · 실시간 시세`, link: naverMain, date: now.toISOString(), source: '네이버 금융', stock: stock.name, stockCode: stock.code },
+    { title: `🔍 ${stock.name} 관련 뉴스 검색`, link: `https://search.naver.com/search.naver?where=news&query=${encodeURIComponent(stock.name + ' 주식')}`, date: now.toISOString(), source: '네이버 검색', stock: stock.name, stockCode: stock.code },
+  ];
 }
 
 function getSentimentTag(title) {
@@ -3866,6 +3971,119 @@ function filterNews() {
   const q = document.getElementById('newsSearch').value.toLowerCase();
   const filtered = allNews.filter(n => n.title.toLowerCase().includes(q) || n.stock.toLowerCase().includes(q));
   renderNewsList(document.getElementById('fullNewsList'), filtered);
+}
+
+// ============================================
+// 주식 용어사전
+// ============================================
+const GLOSSARY_DATA = [
+  { term: '시가총액', en: 'Market Cap', level: 'basic',
+    desc: '회사의 전체 가치를 나타내는 숫자예요. <strong>주가 × 발행 주식 수</strong>로 계산합니다. 시가총액이 클수록 대기업이에요.',
+    example: '삼성전자 주가 7만원 × 60억주 = 시가총액 약 420조원 → 코스피 1위' },
+  { term: '주가수익비율', en: 'PER (P/E Ratio)', level: 'basic',
+    desc: '주가가 1주당 순이익의 몇 배인지를 보여줘요. <strong>PER = 주가 ÷ 주당순이익(EPS)</strong>. PER이 낮으면 저평가, 높으면 고평가 가능성이 있어요. 하지만 업종마다 기준이 달라요.',
+    example: 'PER 10이면 → "이 회사가 10년간 같은 이익을 내면 투자금 회수 가능"이라는 뜻' },
+  { term: '주당순이익', en: 'EPS (Earnings Per Share)', level: 'basic',
+    desc: '회사가 1주당 벌어들인 순이익이에요. <strong>EPS = 순이익 ÷ 발행주식수</strong>. EPS가 높을수록 돈을 잘 버는 회사예요.',
+    example: '순이익 1조원, 발행주식 1억주 → EPS = 10,000원' },
+  { term: '배당금', en: 'Dividend', level: 'basic',
+    desc: '회사가 이익의 일부를 주주에게 나눠주는 돈이에요. 연 1~2회 지급하며, <strong>배당수익률 = 배당금 ÷ 주가 × 100</strong>으로 계산해요.',
+    example: '주가 5만원, 배당금 2,000원 → 배당수익률 4% (은행 이자보다 높을 수 있어요!)' },
+  { term: '거래량', en: 'Volume', level: 'basic',
+    desc: '하루 동안 거래된 주식의 수예요. 거래량이 급증하면 시장의 관심이 집중되고 있다는 신호입니다. 가격 상승 + 거래량 증가는 강한 상승 신호예요.',
+    example: '평소 거래량 10만주 → 갑자기 100만주 = 뭔가 큰 일이 있다는 뜻!' },
+  { term: '호가', en: 'Bid/Ask', level: 'basic',
+    desc: '<strong>매수호가</strong>는 사려는 사람이 제시한 가격, <strong>매도호가</strong>는 팔려는 사람이 제시한 가격이에요. 두 호가가 만나면 거래가 체결됩니다.',
+    example: '매수호가 49,500원 / 매도호가 50,000원 → 스프레드(차이) 500원' },
+  { term: '시가/종가/고가/저가', en: 'Open/Close/High/Low', level: 'basic',
+    desc: '<strong>시가</strong>는 장 시작 가격, <strong>종가</strong>는 장 마감 가격, <strong>고가</strong>는 하루 중 최고가, <strong>저가</strong>는 최저가예요. 캔들차트의 기본이 됩니다.',
+    example: '시가 5만 / 고가 5.2만 / 저가 4.8만 / 종가 5.1만 → 양봉(상승) 캔들' },
+  { term: '캔들차트', en: 'Candlestick Chart', level: 'inter',
+    desc: '시가·종가·고가·저가를 하나의 봉으로 표현한 차트예요. <span style="color:var(--accent-red);">빨간봉(양봉)</span>은 상승, <span style="color:var(--accent-blue);">파란봉(음봉)</span>은 하락. 봉의 길이와 꼬리(그림자)로 매수/매도 힘을 읽어요.',
+    example: '긴 아래꼬리 + 짧은 몸통 = "망치형" → 하락 후 반등 신호일 수 있어요' },
+  { term: 'RSI', en: 'Relative Strength Index', level: 'inter',
+    desc: '주가가 과매수(너무 올랐나)인지 과매도(너무 내렸나)인지를 0~100 숫자로 보여줘요. <strong>70 이상 = 과매수</strong>(떨어질 수 있음), <strong>30 이하 = 과매도</strong>(올라갈 수 있음).',
+    example: 'RSI 80 → "많이 올랐으니 조심해야 할 때" / RSI 25 → "많이 빠져서 반등 가능"' },
+  { term: 'MACD', en: 'Moving Average Convergence Divergence', level: 'adv',
+    desc: '두 이동평균선의 차이를 보여주는 지표예요. <strong>MACD선이 시그널선을 위로 돌파</strong>하면 매수 신호, 아래로 돌파하면 매도 신호로 봅니다.',
+    example: 'MACD 골든크로스 발생 → 상승 추세 전환 가능성 (다른 지표와 함께 확인!)' },
+  { term: '이동평균선', en: 'Moving Average (MA)', level: 'inter',
+    desc: '일정 기간의 평균 주가를 연결한 선이에요. <strong>5일선</strong>(단기), <strong>20일선</strong>(중기), <strong>60일선</strong>(장기)이 대표적. 단기선이 장기선을 뚫고 올라가면 골든크로스!',
+    example: '주가가 20일선 위에 있으면 → 단기 상승 추세 / 아래에 있으면 → 단기 하락 추세' },
+  { term: '골든크로스 / 데드크로스', en: 'Golden Cross / Dead Cross', level: 'inter',
+    desc: '<strong>골든크로스</strong>: 단기 이동평균선이 장기선을 위로 돌파 → 상승 신호. <strong>데드크로스</strong>: 단기선이 장기선을 아래로 돌파 → 하락 신호.',
+    example: '5일선이 20일선을 위로 돌파 → 골든크로스 = 매수 타이밍?' },
+  { term: '지지선 / 저항선', en: 'Support / Resistance', level: 'inter',
+    desc: '<strong>지지선</strong>은 주가가 떨어지다가 반등하는 가격대, <strong>저항선</strong>은 올라가다가 꺾이는 가격대예요. 이 선을 돌파하면 큰 움직임이 나올 수 있어요.',
+    example: '삼성전자가 6만원에서 3번 반등 → 6만원이 강한 지지선' },
+  { term: '공매도', en: 'Short Selling', level: 'adv',
+    desc: '주식을 빌려서 먼저 팔고, 나중에 싼 값에 사서 갚는 투자법이에요. 주가 하락에 베팅하는 전략으로, 개인은 제한적이고 기관/외국인이 주로 사용해요.',
+    example: '10만원에 공매도 → 8만원에 재매수 = 2만원 이익 (하지만 올라가면 손실 무한대!)' },
+  { term: 'ETF', en: 'Exchange Traded Fund', level: 'basic',
+    desc: '여러 종목을 한 바구니에 담아놓은 펀드를 주식처럼 거래할 수 있어요. 분산투자가 자동으로 되어 초보자에게 추천! KODEX 200, TIGER 나스닥 등이 유명해요.',
+    example: 'KODEX 200 = 코스피 상위 200개 종목을 한 번에 사는 효과' },
+  { term: '선물/옵션', en: 'Futures/Options', level: 'adv',
+    desc: '미래의 특정 시점에 정해진 가격으로 사고팔겠다는 계약이에요. 레버리지가 높아 큰 수익/손실이 가능해서 고위험 상품이에요. 초보자는 주의!',
+    example: '코스피200 선물 매수 → 코스피가 오르면 이익, 떨어지면 손실 (원금 이상 손실 가능)' },
+  { term: 'PBR', en: 'Price to Book Ratio', level: 'inter',
+    desc: '주가가 회사 순자산의 몇 배인지를 나타내요. <strong>PBR = 주가 ÷ 주당순자산</strong>. PBR 1 이하면 회사를 청산해도 투자금을 회수할 수 있다는 의미로, 저평가 지표로 사용돼요.',
+    example: 'PBR 0.8 → 회사 장부가치보다 주가가 낮음 = 저평가 가능성' },
+  { term: 'ROE', en: 'Return on Equity', level: 'inter',
+    desc: '자기자본 대비 얼마나 이익을 냈는지를 %로 보여줘요. <strong>ROE = 순이익 ÷ 자기자본 × 100</strong>. ROE가 높을수록 주주 돈을 효율적으로 쓰는 회사예요.',
+    example: 'ROE 15% → 주주가 맡긴 100원으로 15원을 벌었다는 뜻' },
+  { term: '상한가 / 하한가', en: 'Price Limit', level: 'basic',
+    desc: '하루에 주가가 오를 수 있는 최대치(+30%)와 내릴 수 있는 최대치(-30%)예요. 이를 넘어서면 더 이상 거래가 안 돼요.',
+    example: '1만원 종목 → 상한가 13,000원 / 하한가 7,000원' },
+  { term: 'LTV / DSR / DTI', en: 'Loan Ratios', level: 'inter',
+    desc: '<strong>LTV</strong>: 담보 대비 대출 비율. <strong>DSR</strong>: 소득 대비 전체 대출 상환액 비율. <strong>DTI</strong>: 소득 대비 해당 주택담보대출 상환액 비율. 부동산 대출 규제의 핵심 지표예요.',
+    example: '연소득 5천만원, 연 상환액 2천만원 → DSR 40% (규제선)' },
+];
+
+let glossaryInited = false;
+function initGlossary() {
+  if (glossaryInited) return;
+  glossaryInited = true;
+  renderGlossary(GLOSSARY_DATA);
+}
+
+function renderGlossary(items) {
+  const container = document.getElementById('glossaryList');
+  if (!items.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">검색 결과가 없습니다</div>';
+    return;
+  }
+  container.innerHTML = items.map((g, i) => {
+    const levelClass = g.level === 'basic' ? 'basic' : g.level === 'inter' ? 'inter' : 'adv';
+    const levelText = g.level === 'basic' ? '기초' : g.level === 'inter' ? '중급' : '고급';
+    return `<div class="glossary-card" id="glossary-${i}" onclick="toggleGlossaryCard(${i})">
+      <div class="glossary-header">
+        <span class="glossary-term">${g.term}<span class="glossary-term-en">${g.en}</span></span>
+        <span class="glossary-tag ${levelClass}">${levelText}</span>
+        <span class="glossary-arrow">▼</span>
+      </div>
+      <div class="glossary-body">
+        <div class="glossary-desc">
+          ${g.desc}
+          ${g.example ? `<span class="example">💡 <strong>예시:</strong> ${g.example}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('glossaryCount').textContent = `총 ${items.length}개 용어`;
+}
+
+function toggleGlossaryCard(idx) {
+  const card = document.getElementById(`glossary-${idx}`);
+  card.classList.toggle('open');
+}
+
+function filterGlossary() {
+  const q = document.getElementById('glossarySearch').value.trim().toLowerCase();
+  const filtered = q
+    ? GLOSSARY_DATA.filter(g => g.term.toLowerCase().includes(q) || g.en.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q))
+    : GLOSSARY_DATA;
+  renderGlossary(filtered);
 }
 
 // ============================================
@@ -4244,6 +4462,7 @@ function switchTab(name) {
   if (name === 'chart') setTimeout(() => loadFullChartData(90), 250);
   if (name === 'analysis') setTimeout(renderAnalysisCharts, 250);
   if (name === 'simulator') setTimeout(() => { updateSelectors(); renderPortfolio(); }, 250);
+  if (name === 'glossary') setTimeout(initGlossary, 100);
 }
 
 function refreshData() {
