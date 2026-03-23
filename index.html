@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My KOSPI Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2236;
+    --bg-card-hover: #1f2a42;
+    --bg-input: #0f1729;
+    --border: #2a3550;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-blue: #3b82f6;
+    --accent-blue-light: #60a5fa;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-red-bg: rgba(239, 68, 68, 0.12);
+    --accent-yellow: #f59e0b;
+    --accent-purple: #8b5cf6;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+    background: var(--bg-primary); color: var(--text-primary);
+    min-height: 100vh; overflow-x: hidden;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .header {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px);
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; color: white;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--accent-blue-light); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .market-status {
+    display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+    background: var(--bg-input); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary);
+  }
+  .market-status .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .clock { font-size: 14px; font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .data-status {
+    font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600;
+  }
+  .data-status.live { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+  .data-status.offline { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+  .nav-tabs {
+    display: flex; gap: 4px; padding: 12px 32px;
+    background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+  }
+  .nav-tab {
+    padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all 0.2s; border: none; background: none; font-family: inherit;
+  }
+  .nav-tab:hover { color: var(--text-secondary); background: var(--bg-card); }
+  .nav-tab.active { color: var(--text-primary); background: var(--accent-blue); }
+
+  .main-content { max-width: 1600px; margin: 0 auto; padding: 24px 32px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .full-width { grid-column: 1 / -1; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(59,130,246,0.3); }
+  .card-header {
+    padding: 18px 22px 14px; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-header h2 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .card-header h2 .icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .card-body { padding: 18px 22px; }
+
+  .stock-list { list-style: none; }
+  .stock-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-radius: var(--radius-sm); cursor: pointer;
+    transition: all 0.15s; margin-bottom: 4px;
+  }
+  .stock-item:hover { background: var(--bg-card-hover); }
+  .stock-item.selected { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); }
+  .stock-info { display: flex; align-items: center; gap: 14px; }
+  .stock-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: white;
+  }
+  .stock-name { font-size: 14px; font-weight: 600; }
+  .stock-code { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .stock-price-info { text-align: right; }
+  .stock-price { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stock-change {
+    font-size: 12px; font-weight: 600; margin-top: 2px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+  }
+  .stock-change.up { color: var(--accent-red); }
+  .stock-change.down { color: var(--accent-blue-light); }
+  .stock-change.flat { color: var(--text-muted); }
+  .change-badge {
+    display: inline-flex; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .change-badge.up { background: var(--accent-red-bg); color: var(--accent-red); }
+  .change-badge.down { background: rgba(59,130,246,0.12); color: var(--accent-blue-light); }
+
+  .news-list { list-style: none; }
+  .news-item {
+    padding: 16px 0; border-bottom: 1px solid rgba(42,53,80,0.5); cursor: pointer; transition: all 0.15s;
+  }
+  .news-item:last-child { border-bottom: none; }
+  .news-item:hover .news-title { color: var(--accent-blue-light); }
+  .news-source {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+    color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .news-title {
+    font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--text-primary);
+    transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .news-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+  .news-tag {
+    padding: 2px 8px; border-radius: 4px; background: rgba(139,92,246,0.15);
+    color: var(--accent-purple); font-size: 11px; font-weight: 500;
+  }
+
+  .chart-container { width: 100%; height: 480px; border-radius: 8px; overflow: hidden; background: #131722; }
+
+  .btn {
+    padding: 10px 18px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; font-family: inherit; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--accent-blue); color: white; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-danger { background: var(--accent-red-bg); color: var(--accent-red); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  .memo-area {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 14px 16px; font-size: 13px; line-height: 1.6; color: var(--text-primary);
+    font-family: inherit; resize: vertical; min-height: 120px; outline: none;
+  }
+  .memo-area:focus { border-color: var(--accent-blue); }
+  .memo-area::placeholder { color: var(--text-muted); }
+  .memo-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .memo-date { font-size: 12px; color: var(--text-muted); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;
+  }
+  .stat-card:hover { border-color: rgba(59,130,246,0.3); }
+  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-sub { font-size: 12px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+
+  .search-input {
+    flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px 16px 12px 44px; font-size: 14px; color: var(--text-primary); font-family: inherit; outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 14px center;
+  }
+  .search-input:focus { border-color: var(--accent-blue); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th {
+    text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+  }
+  .compare-table td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid rgba(42,53,80,0.3); font-variant-numeric: tabular-nums; }
+  .compare-table tr:hover td { background: var(--bg-card-hover); }
+
+  .memo-list { list-style: none; }
+  .memo-item { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px; background: var(--bg-input); }
+  .memo-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .memo-item-stock { font-size: 13px; font-weight: 600; color: var(--accent-blue-light); }
+  .memo-item-date { font-size: 11px; color: var(--text-muted); }
+  .memo-item-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  .loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--text-muted); font-size: 14px; gap: 10px; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; padding: 14px 20px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow); font-size: 13px; color: var(--text-primary); z-index: 1000;
+    transform: translateY(100px); opacity: 0; transition: all 0.3s ease;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .modal-overlay {
+    position: fixed; top:0;left:0;right:0;bottom:0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center;
+    justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+    width: 480px; max-width: 90vw; box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    transform: scale(0.95); transition: transform 0.2s;
+  }
+  .modal-overlay.show .modal { transform: scale(1); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-size: 16px; font-weight: 600; }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent;
+    color: var(--text-muted); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+  .modal-body { padding: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+  .form-input {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-xs);
+    padding: 10px 14px; font-size: 13px; color: var(--text-primary); font-family: inherit; outline: none;
+  }
+  .form-input:focus { border-color: var(--accent-blue); }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+  .refresh-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .refresh-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+  .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+  .refresh-indicator { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+
+  /* Chart Guide */
+  .chart-guide {
+    padding: 16px 22px; border-top: 1px solid var(--border);
+    background: rgba(15,23,41,0.6);
+  }
+  .chart-guide-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+  }
+  .chart-guide-toggle h3 {
+    font-size: 13px; font-weight: 600; color: var(--accent-yellow);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-guide-toggle .arrow {
+    font-size: 12px; color: var(--text-muted); transition: transform 0.2s;
+  }
+  .chart-guide-toggle .arrow.open { transform: rotate(180deg); }
+  .chart-guide-body {
+    display: none; margin-top: 14px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .chart-guide-body.collapsed { display: none; }
+  .guide-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    background: rgba(26,34,54,0.8); border: 1px solid var(--border);
+  }
+  .guide-item .guide-icon {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .guide-item .guide-text h4 {
+    font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px;
+  }
+  .guide-item .guide-text p {
+    font-size: 11px; color: var(--text-muted); line-height: 1.5;
+  }
+  @media (max-width: 768px) {
+    .chart-guide-body { grid-template-columns: 1fr; }
+  }
+
+  .error-badge {
+    display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    background: rgba(239,68,68,0.15); color: var(--accent-red); margin-left: 6px;
+  }
+
+  @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 768px) { .header { padding: 12px 16px; } .main-content { padding: 16px; } .stats-grid { grid-template-columns: 1fr 1fr; } .nav-tabs { padding: 8px 16px; overflow-x: auto; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">K</div>
+    <h1>My <span>KOSPI</span> Dashboard</h1>
+  </div>
+  <div class="header-right">
+    <span class="data-status" id="dataStatus">...</span>
+    <div class="market-status">
+      <div class="dot" id="marketDot"></div>
+      <span id="marketStatusText">확인중...</span>
+    </div>
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">대시보드</button>
+  <button class="nav-tab" data-tab="chart" onclick="switchTab('chart')">상세차트</button>
+  <button class="nav-tab" data-tab="news" onclick="switchTab('news')">뉴스센터</button>
+  <button class="nav-tab" data-tab="analysis" onclick="switchTab('analysis')">분석</button>
+  <button class="nav-tab" data-tab="memo" onclick="switchTab('memo')">메모</button>
+</nav>
+
+<main class="main-content">
+  <!-- DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">KOSPI 지수</div>
+        <div class="stat-value" id="kospiIndex">--</div>
+        <div class="stat-sub" id="kospiChange"><span>로딩중...</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">관심종목</div>
+        <div class="stat-value" id="watchCount">0</div>
+        <div class="stat-sub" style="color:var(--text-muted)">워치리스트</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">상승</div>
+        <div class="stat-value" style="color:var(--accent-red)" id="upCount">-</div>
+        <div class="stat-sub" style="color:var(--text-muted)">관심종목 기준</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">하락</div>
+        <div class="stat-value" style="color:var(--accent-blue-light)" id="downCount">-</div>
+        <div class="stat-sub" style="color:var(--text-muted)">관심종목 기준</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="card-header">
+          <h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue-light)">★</span> 관심종목</h2>
+          <button class="btn btn-primary btn-sm" onclick="showAddStockModal()">+ 종목 추가</button>
+        </div>
+        <div class="card-body">
+          <ul class="stock-list" id="stockList"><li class="loading"><div class="spinner"></div> 로딩중...</li></ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2><span class="icon" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">▲</span> <span id="selectedStockName">삼성전자</span> 차트</h2>
+          <div class="refresh-indicator">
+            <span id="lastUpdate">--</span>
+            <button class="refresh-btn" onclick="refreshData()" title="새로고침">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="chart-container" id="miniChartContainer"></div>
+          <div class="chart-guide">
+            <div class="chart-guide-toggle" onclick="toggleGuide(this)">
+              <h3>초보자 가이드 — 이 차트는 어떻게 보나요?</h3>
+              <span class="arrow open">▼</span>
+            </div>
+            <div class="chart-guide-body" id="miniGuideBody">
+              <div class="guide-item">
+                <div class="guide-icon" style="background:rgba(239,68,68,0.2);">
+                  <span style="color:#ef4444;">▊</span>
+                </div>
+                <div class="guide-text">
+                  <h4>빨간 캔들 = 상승</h4>
+                  <p>종가가 시가보다 높은 날. 그 날 주가가 올랐다는 뜻이에요.</p>
+                </div>
+              </div>
+              <div class="guide-item">
+                <div class="guide-icon" style="background:rgba(59,130,246,0.2);">
+                  <span style="color:#3b82f6;">▊</span>
+                </div>
+                <div class="guide-text">
+                  <h4>파란 캔들 = 하락</h4>
+                  <p>종가가 시가보다 낮은 날. 그 날 주가가 내렸다는 뜻이에요.</p>
+                </div>
+              </div>
+              <div class="guide-item">
+                <div class="guide-icon" style="background:rgba(239,68,68,0.1);">
+                  <span style="color:rgba(239,68,68,0.5);">▇</span>
+                </div>
+                <div class="guide-text">
+                  <h4>아래 막대 = 거래량</h4>
+                  <p>그 날 얼마나 많이 거래되었는지 보여줍니다. 높을수록 관심이 많은 날!</p>
+                </div>
+              </div>
+              <div class="guide-item">
+                <div class="guide-icon" style="background:rgba(245,158,11,0.15);">
+                  <span style="color:#64748b;">↕</span>
+                </div>
+                <div class="guide-text">
+                  <h4>캔들 위아래 꼬리</h4>
+                  <p>그 날의 최고가와 최저가를 나타내요. 꼬리가 길수록 변동이 컸던 날이에요.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card full-width">
+        <div class="card-header">
+          <h2><span class="icon" style="background:rgba(245,158,11,0.15);color:var(--accent-yellow)">N</span> 최신 뉴스</h2>
+          <button class="btn btn-ghost btn-sm" onclick="switchTab('news')">전체보기 →</button>
+        </div>
+        <div class="card-body">
+          <ul class="news-list" id="latestNewsList"><li class="loading"><div class="spinner"></div> 뉴스 로딩중...</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="tab-content" id="tab-chart">
+    <div class="card full-width">
+      <div class="card-header">
+        <h2 style="gap:10px;">
+          <span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue-light)">C</span>
+          <select class="form-input" id="chartStockSelect" onchange="selectChartStock(this.value)" style="width:auto;background:var(--bg-input);font-size:15px;font-weight:600;padding:6px 12px;"></select>
+          상세 차트
+        </h2>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm chart-period" data-count="30" onclick="loadFullChartData(30, this)">1개월</button>
+          <button class="btn btn-ghost btn-sm chart-period active" data-count="90" onclick="loadFullChartData(90, this)">3개월</button>
+          <button class="btn btn-ghost btn-sm chart-period" data-count="180" onclick="loadFullChartData(180, this)">6개월</button>
+          <button class="btn btn-ghost btn-sm chart-period" data-count="365" onclick="loadFullChartData(365, this)">1년</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding:8px;">
+        <div id="fullChartContainer" style="width:100%;height:520px;"></div>
+      </div>
+      <div class="chart-guide">
+        <div class="chart-guide-toggle" onclick="toggleGuide(this)">
+          <h3>초보자 가이드 — 상세 차트 읽는 법</h3>
+          <span class="arrow open">▼</span>
+        </div>
+        <div class="chart-guide-body" id="fullGuideBody">
+          <div class="guide-item">
+            <div class="guide-icon" style="background:rgba(239,68,68,0.2);">
+              <span style="color:#ef4444;">▊</span>
+            </div>
+            <div class="guide-text">
+              <h4>빨간 캔들 = 상승일</h4>
+              <p>그 날 종가(마감 가격)가 시가(시작 가격)보다 높아요. 사려는 사람이 더 많았다는 뜻!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon" style="background:rgba(59,130,246,0.2);">
+              <span style="color:#3b82f6;">▊</span>
+            </div>
+            <div class="guide-text">
+              <h4>파란 캔들 = 하락일</h4>
+              <p>종가가 시가보다 낮아요. 팔려는 사람이 더 많았다는 뜻이에요.</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon" style="background:rgba(245,158,11,0.2);">
+              <span style="color:#f59e0b;">─</span>
+            </div>
+            <div class="guide-text">
+              <h4>노란선 = 5일 이동평균선 (MA5)</h4>
+              <p>최근 5거래일의 평균 가격을 이은 선. <b>단기 추세</b>를 보여줘요. 주가가 이 선 위에 있으면 단기적으로 상승 흐름!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon" style="background:rgba(139,92,246,0.2);">
+              <span style="color:#8b5cf6;">─</span>
+            </div>
+            <div class="guide-text">
+              <h4>보라선 = 20일 이동평균선 (MA20)</h4>
+              <p>최근 20거래일(약 1달)의 평균. <b>중기 추세</b>를 나타내요. 노란선이 보라선을 위로 뚫으면 "골든크로스"라고 해서 매수 신호로 봐요!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon" style="background:rgba(239,68,68,0.1);">
+              <span style="color:rgba(239,68,68,0.5);">▇</span>
+            </div>
+            <div class="guide-text">
+              <h4>하단 막대 = 거래량</h4>
+              <p>그 날 주식이 얼마나 거래됐는지 보여줘요. 갑자기 거래량이 늘면 큰 뉴스가 있거나 추세 변화가 올 수 있어요.</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon" style="background:rgba(16,185,129,0.15);">
+              <span style="color:var(--accent-green);">?</span>
+            </div>
+            <div class="guide-text">
+              <h4>TIP: 차트 조작법</h4>
+              <p>마우스를 차트 위에 올리면 해당 날짜의 시가/고가/저가/종가를 볼 수 있어요. 드래그로 이동, 스크롤로 확대/축소!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-grid" style="margin-top:20px;">
+      <div class="card">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(139,92,246,0.15);color:var(--accent-purple)">V</span> 거래량 추이</h2></div>
+        <div class="card-body"><canvas id="volumeChart" height="200"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">T</span> 종목 비교</h2></div>
+        <div class="card-body" style="padding:0;">
+          <table class="compare-table"><thead><tr><th>종목</th><th>현재가</th><th>등락률</th><th>거래량</th></tr></thead><tbody id="compareBody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEWS -->
+  <div class="tab-content" id="tab-news">
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <input type="text" class="search-input" id="newsSearch" placeholder="뉴스 검색..." oninput="filterNews()" style="flex:1;">
+      <select class="form-input" style="width:auto;background:var(--bg-card);" id="newsStockFilter" onchange="loadAllNews()">
+        <option value="all">전체 종목</option>
+      </select>
+    </div>
+    <div class="card full-width">
+      <div class="card-header">
+        <h2><span class="icon" style="background:rgba(245,158,11,0.15);color:var(--accent-yellow)">N</span> 뉴스 피드</h2>
+        <div class="refresh-indicator">
+          <span id="newsUpdateTime">--</span>
+          <button class="refresh-btn" onclick="loadAllNews()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+        </div>
+      </div>
+      <div class="card-body"><ul class="news-list" id="fullNewsList"><li class="loading"><div class="spinner"></div> 뉴스 로딩중...</li></ul></div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS -->
+  <div class="tab-content" id="tab-analysis">
+    <div class="dashboard-grid">
+      <div class="card full-width">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(139,92,246,0.15);color:var(--accent-purple)">A</span> 종목 비교 분석</h2></div>
+        <div class="card-body"><canvas id="comparisonChart" height="300"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue-light)">%</span> 등락률 비교</h2></div>
+        <div class="card-body"><canvas id="changeRateChart" height="280"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(16,185,129,0.15);color:var(--accent-green)">V</span> 거래량 비교</h2></div>
+        <div class="card-body"><canvas id="volumeCompareChart" height="280"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMO -->
+  <div class="tab-content" id="tab-memo">
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(245,158,11,0.15);color:var(--accent-yellow)">M</span> 새 메모</h2></div>
+        <div class="card-body">
+          <div class="form-group"><label class="form-label">종목</label><select class="form-input" id="memoStock"><option value="general">일반 메모</option></select></div>
+          <div class="form-group"><label class="form-label">내용</label><textarea class="memo-area" id="memoText" placeholder="투자 아이디어, 분석, 매수/매도 근거 등을 기록하세요..."></textarea></div>
+          <div class="memo-actions"><span class="memo-date" id="memoDate"></span><button class="btn btn-primary" onclick="saveMemo()">저장</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent-blue-light)">L</span> 메모 기록</h2><button class="btn btn-ghost btn-sm" onclick="clearAllMemos()">전체 삭제</button></div>
+        <div class="card-body"><ul class="memo-list" id="memoList"><li class="empty-state"><div class="icon">...</div><p>아직 메모가 없습니다</p></li></ul></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Add Stock Modal -->
+<div class="modal-overlay" id="addStockModal">
+  <div class="modal">
+    <div class="modal-header"><h3>종목 추가</h3><button class="modal-close" onclick="closeAddStockModal()">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">종목명</label><input type="text" class="form-input" id="addStockName" placeholder="예: 삼성전자"></div>
+      <div class="form-group"><label class="form-label">종목코드 (6자리)</label><input type="text" class="form-input" id="addStockCode" placeholder="예: 005930" maxlength="6"></div>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:8px;">
+        종목코드는 네이버 금융에서 확인 가능합니다.<br>
+        삼성전자: 005930 / SK하이닉스: 000660 / NAVER: 035420
+      </p>
+      <div style="margin-top:16px;">
+        <p style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">자주 찾는 종목</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('LG에너지솔루션','373220')">LG에너지솔루션</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('NAVER','035420')">NAVER</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('카카오','035720')">카카오</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('현대차','005380')">현대차</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('셀트리온','068270')">셀트리온</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('포스코홀딩스','005490')">포스코홀딩스</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('삼성SDI','006400')">삼성SDI</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('기아','000270')">기아</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('KB금융','105560')">KB금융</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAdd('삼성바이오로직스','207940')">삼성바이오로직스</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeAddStockModal()">취소</button><button class="btn btn-primary" onclick="addStock()">추가</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// STATE
+// ============================================
+let watchlist = [];
+let selectedStock = null;
+let memos = [];
+let allNews = [];
+let dataIsLive = false;
+let historicalCache = {};
+
+// Chart instances
+let miniChart = null, miniCandleSeries = null, miniVolumeSeries = null;
+let fullChart = null, fullCandleSeries = null, fullVolumeSeries = null;
+let volumeChartJS = null, comparisonChartJS = null, changeRateChartJS = null, volumeCompareChartJS = null;
+
+const DEFAULT_STOCKS = [
+  { name: '삼성전자', code: '005930', color: '#1428A0' },
+  { name: 'SK하이닉스', code: '000660', color: '#E4002B' },
+  { name: 'LG에너지솔루션', code: '373220', color: '#A50034' },
+  { name: 'NAVER', code: '035420', color: '#03C75A' },
+  { name: '현대차', code: '005380', color: '#002C5F' },
+];
+
+const STOCK_COLORS = ['#1428A0','#E4002B','#A50034','#03C75A','#002C5F','#FF6B35','#7C3AED','#0891B2','#DC2626','#059669'];
+
+// CORS Proxies (fallback chain)
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+
+async function fetchWithProxy(url, timeout = 6000) {
+  // Race all proxies + direct simultaneously — first valid response wins
+  const attempts = [
+    ...PROXIES.map(proxyFn => {
+      const proxyUrl = proxyFn(url);
+      return fetch(proxyUrl, { signal: AbortSignal.timeout(timeout) })
+        .then(res => res.ok ? res.text() : Promise.reject('not ok'))
+        .then(text => (text && text.length > 2) ? text : Promise.reject('empty'));
+    }),
+    // Direct fetch (in case CORS is allowed)
+    fetch(url, { signal: AbortSignal.timeout(timeout) })
+      .then(res => res.ok ? res.text() : Promise.reject('not ok'))
+      .then(text => (text && text.length > 2) ? text : Promise.reject('empty'))
+  ];
+  try {
+    return await Promise.any(attempts);
+  } catch(e) {
+    return null;
+  }
+}
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+  loadFromStorage();
+  if (watchlist.length === 0) {
+    watchlist = DEFAULT_STOCKS.map(s => ({ ...s, price: 0, change: 0, changePercent: 0, volume: 0, dataOk: false }));
+  }
+  selectedStock = watchlist[0];
+  updateClock(); setInterval(updateClock, 1000);
+  checkMarketStatus();
+  renderWatchlist();
+  updateSelectors();
+  renderMemos();
+  updateMemoDate(); setInterval(updateMemoDate, 60000);
+
+  // Fetch all data
+  fetchAllStockData();
+  loadAllNews();
+  fetchKospiIndex();
+
+  // Auto-refresh
+  setInterval(() => { fetchAllStockData(); fetchKospiIndex(); }, 60000);
+  setInterval(loadAllNews, 300000);
+}
+
+function loadFromStorage() {
+  try {
+    const s1 = localStorage.getItem('kospi_watchlist_v2');
+    if (s1) watchlist = JSON.parse(s1);
+    const s2 = localStorage.getItem('kospi_memos_v2');
+    if (s2) memos = JSON.parse(s2);
+  } catch(e) {}
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem('kospi_watchlist_v2', JSON.stringify(watchlist));
+    localStorage.setItem('kospi_memos_v2', JSON.stringify(memos));
+  } catch(e) {}
+}
+
+// ============================================
+// CLOCK & MARKET STATUS
+// ============================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' }) + ' ' +
+    now.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+}
+
+function isMarketOpen() {
+  const now = new Date();
+  const d = now.getDay(), t = now.getHours() * 60 + now.getMinutes();
+  return d >= 1 && d <= 5 && t >= 540 && t <= 930;
+}
+
+function checkMarketStatus() {
+  const dot = document.getElementById('marketDot');
+  const text = document.getElementById('marketStatusText');
+  if (isMarketOpen()) {
+    dot.style.background = 'var(--accent-green)'; text.textContent = '장 진행중';
+  } else {
+    dot.style.background = 'var(--accent-yellow)'; dot.style.animation = 'none'; text.textContent = '장 마감';
+  }
+}
+
+function updateDataStatus(live) {
+  dataIsLive = live;
+  const el = document.getElementById('dataStatus');
+  if (live) {
+    el.className = 'data-status live'; el.textContent = 'LIVE 실시간';
+  } else {
+    el.className = 'data-status offline'; el.textContent = 'DATA 로딩실패';
+  }
+}
+
+// ============================================
+// DATA FETCHING — Naver Stock API
+// ============================================
+async function fetchAllStockData() {
+  let anySuccess = false;
+  const promises = watchlist.map(async (stock) => {
+    const ok = await fetchSingleStock(stock);
+    if (ok) anySuccess = true;
+  });
+  await Promise.all(promises);
+  updateDataStatus(anySuccess);
+  renderWatchlist();
+  updateStats();
+  updateCompareTable();
+
+  // Load chart for selected
+  if (selectedStock) {
+    loadMiniChartData();
+  }
+
+  document.getElementById('lastUpdate').textContent =
+    new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }) + ' 업데이트';
+  saveToStorage();
+}
+
+async function fetchSingleStock(stock) {
+  // Strategy 1: Naver Stock API (returns JSON)
+  try {
+    const url = `https://m.stock.naver.com/api/stock/${stock.code}/basic`;
+    const text = await fetchWithProxy(url);
+    if (text) {
+      const data = JSON.parse(text);
+      if (data && data.closePrice) {
+        stock.price = parseInt(data.closePrice.replace(/,/g, ''));
+        stock.change = parseInt((data.compareToPreviousClosePrice || '0').replace(/,/g, ''));
+        stock.changePercent = parseFloat(data.fluctuationsRatio || 0);
+        stock.volume = parseInt((data.accumulatedTradingVolume || '0').replace(/,/g, ''));
+        stock.high = parseInt((data.highPrice || '0').replace(/,/g, ''));
+        stock.low = parseInt((data.lowPrice || '0').replace(/,/g, ''));
+        stock.open = parseInt((data.openPrice || '0').replace(/,/g, ''));
+        stock.marketCap = data.marketCap || '';
+        stock.dataOk = true;
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // Strategy 2: Naver Finance JSON sise
+  try {
+    const url = `https://api.stock.naver.com/stock/${stock.code}/basic`;
+    const text = await fetchWithProxy(url);
+    if (text) {
+      const data = JSON.parse(text);
+      if (data && (data.closePrice || data.stockEndPrice)) {
+        stock.price = parseInt((data.closePrice || data.stockEndPrice || '0').replace(/,/g, ''));
+        stock.change = parseInt((data.compareToPreviousClosePrice || data.compareToPreviousPrice || '0').replace(/,/g, ''));
+        stock.changePercent = parseFloat(data.fluctuationsRatio || data.fluctuationsRate || 0);
+        stock.volume = parseInt((data.accumulatedTradingVolume || '0').replace(/,/g, ''));
+        stock.dataOk = true;
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // Strategy 3: Naver Chart XML API (last day)
+  try {
+    const url = `https://fchart.stock.naver.com/sise.nhn?symbol=${stock.code}&timeframe=day&count=2&requestType=0`;
+    const text = await fetchWithProxy(url);
+    if (text) {
+      const items = [...text.matchAll(/data="([^"]+)"/g)];
+      if (items.length >= 2) {
+        const prev = items[items.length - 2][1].split('|');
+        const curr = items[items.length - 1][1].split('|');
+        // format: date|open|high|low|close|volume
+        stock.price = parseInt(curr[4]);
+        stock.open = parseInt(curr[1]);
+        stock.high = parseInt(curr[2]);
+        stock.low = parseInt(curr[3]);
+        stock.volume = parseInt(curr[5]);
+        const prevClose = parseInt(prev[4]);
+        stock.change = stock.price - prevClose;
+        stock.changePercent = prevClose > 0 ? parseFloat(((stock.change / prevClose) * 100).toFixed(2)) : 0;
+        stock.dataOk = true;
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  stock.dataOk = false;
+  return false;
+}
+
+// Historical chart data
+async function fetchChartData(code, count = 90) {
+  const cacheKey = `${code}_${count}`;
+  if (historicalCache[cacheKey] && Date.now() - historicalCache[cacheKey].ts < 300000) {
+    return historicalCache[cacheKey].data;
+  }
+
+  // Naver Chart XML API
+  try {
+    const url = `https://fchart.stock.naver.com/sise.nhn?symbol=${code}&timeframe=day&count=${count}&requestType=0`;
+    const text = await fetchWithProxy(url);
+    if (text) {
+      const items = [...text.matchAll(/data="([^"]+)"/g)];
+      const chartData = items.map(m => {
+        const p = m[1].split('|');
+        const dateStr = p[0]; // YYYYMMDD
+        return {
+          time: `${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`,
+          open: parseInt(p[1]),
+          high: parseInt(p[2]),
+          low: parseInt(p[3]),
+          close: parseInt(p[4]),
+          volume: parseInt(p[5])
+        };
+      }).filter(d => d.open > 0);
+
+      if (chartData.length > 0) {
+        historicalCache[cacheKey] = { data: chartData, ts: Date.now() };
+        return chartData;
+      }
+    }
+  } catch(e) {}
+
+  return null;
+}
+
+// KOSPI Index
+async function fetchKospiIndex() {
+  try {
+    const url = 'https://m.stock.naver.com/api/index/KOSPI/basic';
+    const text = await fetchWithProxy(url);
+    if (text) {
+      const data = JSON.parse(text);
+      const idx = data.closePrice || data.nowVal;
+      const change = data.compareToPreviousClosePrice || data.changeVal;
+      const rate = data.fluctuationsRatio || data.changeRate;
+      if (idx) {
+        document.getElementById('kospiIndex').textContent = parseFloat(idx.replace(/,/g, '')).toFixed(2);
+        const isUp = !change.toString().startsWith('-');
+        document.getElementById('kospiChange').innerHTML =
+          `<span style="color:${isUp ? 'var(--accent-red)' : 'var(--accent-blue-light)'}">` +
+          `${isUp ? '▲' : '▼'} ${change.toString().replace('-','')} (${rate}%)</span>`;
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // Fallback: try chart API
+  try {
+    const url = 'https://fchart.stock.naver.com/sise.nhn?symbol=KOSPI&timeframe=day&count=2&requestType=0';
+    const text = await fetchWithProxy(url);
+    if (text) {
+      const items = [...text.matchAll(/data="([^"]+)"/g)];
+      if (items.length >= 2) {
+        const prev = parseFloat(items[items.length-2][1].split('|')[4]);
+        const curr = parseFloat(items[items.length-1][1].split('|')[4]);
+        const diff = curr - prev;
+        const rate = ((diff / prev) * 100).toFixed(2);
+        document.getElementById('kospiIndex').textContent = curr.toFixed(2);
+        document.getElementById('kospiChange').innerHTML =
+          `<span style="color:${diff >= 0 ? 'var(--accent-red)' : 'var(--accent-blue-light)'}">` +
+          `${diff >= 0 ? '▲' : '▼'} ${Math.abs(diff).toFixed(2)} (${diff >= 0 ? '+' : ''}${rate}%)</span>`;
+      }
+    }
+  } catch(e) {
+    document.getElementById('kospiIndex').textContent = '--';
+    document.getElementById('kospiChange').innerHTML = '<span>데이터 로딩 실패</span>';
+  }
+}
+
+// ============================================
+// RENDERING
+// ============================================
+function renderWatchlist() {
+  const list = document.getElementById('stockList');
+  if (watchlist.length === 0) {
+    list.innerHTML = '<li class="empty-state"><div class="icon">...</div><p>관심종목을 추가해주세요</p></li>';
+    return;
+  }
+
+  list.innerHTML = watchlist.map((stock, i) => {
+    const isUp = stock.change > 0, isDown = stock.change < 0;
+    const dir = isUp ? 'up' : isDown ? 'down' : 'flat';
+    const arrow = isUp ? '▲' : isDown ? '▼' : '-';
+    const sel = selectedStock && selectedStock.code === stock.code;
+    const color = stock.color || STOCK_COLORS[i % STOCK_COLORS.length];
+    const errBadge = stock.dataOk ? '' : '<span class="error-badge">오프라인</span>';
+
+    return `<li class="stock-item ${sel?'selected':''}" onclick="selectStock('${stock.code}')">
+      <div class="stock-info">
+        <div class="stock-icon" style="background:${color}">${stock.name.substring(0,1)}</div>
+        <div>
+          <div class="stock-name">${stock.name}${errBadge}</div>
+          <div class="stock-code">${stock.code}</div>
+        </div>
+      </div>
+      <div class="stock-price-info">
+        <div class="stock-price">${stock.price ? stock.price.toLocaleString()+'원' : '로딩중...'}</div>
+        <div class="stock-change ${dir}">
+          ${stock.price ? arrow + ' ' + Math.abs(stock.change).toLocaleString() + '원' : ''}
+          ${stock.price ? '<span class="change-badge '+dir+'">'+(stock.changePercent>0?'+':'')+stock.changePercent.toFixed(2)+'%</span>' : ''}
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removeStock('${stock.code}')" style="margin-left:8px;padding:4px 8px;">×</button>
+    </li>`;
+  }).join('');
+
+  document.getElementById('watchCount').textContent = watchlist.length;
+}
+
+function updateStats() {
+  const loaded = watchlist.filter(s => s.price > 0);
+  document.getElementById('upCount').textContent = loaded.filter(s => s.change > 0).length;
+  document.getElementById('downCount').textContent = loaded.filter(s => s.change < 0).length;
+}
+
+function updateCompareTable() {
+  document.getElementById('compareBody').innerHTML = watchlist.map(s => {
+    const dir = s.change > 0 ? 'up' : s.change < 0 ? 'down' : 'flat';
+    return `<tr>
+      <td style="font-weight:600">${s.name}</td>
+      <td>${s.price ? s.price.toLocaleString()+'원' : '--'}</td>
+      <td><span class="stock-change ${dir}" style="justify-content:flex-start">${s.price ? (s.changePercent>0?'+':'')+s.changePercent.toFixed(2)+'%' : '--'}</span></td>
+      <td>${s.volume ? (s.volume/10000).toFixed(0)+'만' : '--'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================
+// LIGHTWEIGHT CHARTS
+// ============================================
+async function loadMiniChartData() {
+  if (!selectedStock) return;
+  document.getElementById('selectedStockName').textContent = selectedStock.name;
+
+  // Show loading spinner
+  const container = document.getElementById('miniChartContainer');
+  if (miniChart) { try { miniChart.remove(); } catch(e) {} miniChart = null; }
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> ' + selectedStock.name + ' 차트 로딩중...</div>';
+
+  const data = await fetchChartData(selectedStock.code, 60);
+  renderMiniChart(data);
+}
+
+function renderMiniChart(data) {
+  const container = document.getElementById('miniChartContainer');
+  if (miniChart) { try { miniChart.remove(); } catch(e) {} miniChart = null; }
+  container.innerHTML = '';
+
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="loading">차트 데이터를 불러올 수 없습니다</div>';
+    return;
+  }
+
+  const w = container.clientWidth || container.offsetWidth || 800;
+
+  miniChart = LightweightCharts.createChart(container, {
+    width: w,
+    height: 480,
+    layout: { background: { color: '#131722' }, textColor: '#94a3b8' },
+    grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#2a3550' },
+    timeScale: { borderColor: '#2a3550', timeVisible: false },
+    localization: { priceFormatter: p => p.toLocaleString() + '원' }
+  });
+
+  miniCandleSeries = miniChart.addCandlestickSeries({
+    upColor: '#ef4444', downColor: '#3b82f6',
+    borderUpColor: '#ef4444', borderDownColor: '#3b82f6',
+    wickUpColor: '#ef4444', wickDownColor: '#3b82f6',
+  });
+  miniCandleSeries.setData(data.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
+
+  miniVolumeSeries = miniChart.addHistogramSeries({
+    priceFormat: { type: 'volume' },
+    priceScaleId: '',
+  });
+  miniChart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+  miniVolumeSeries.setData(data.map(d => ({
+    time: d.time, value: d.volume,
+    color: d.close >= d.open ? 'rgba(239,68,68,0.3)' : 'rgba(59,130,246,0.3)'
+  })));
+
+  miniChart.timeScale().fitContent();
+
+  // Resize observer
+  new ResizeObserver(() => {
+    if (miniChart) miniChart.applyOptions({ width: container.clientWidth });
+  }).observe(container);
+}
+
+async function loadFullChartData(count = 90, btn = null) {
+  if (btn) {
+    document.querySelectorAll('.chart-period').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (!selectedStock) return;
+
+  const chartSelect = document.getElementById('chartStockSelect');
+  if (chartSelect) chartSelect.value = selectedStock.code;
+
+  // Show loading spinner while fetching
+  const container = document.getElementById('fullChartContainer');
+  if (fullChart) { try { fullChart.remove(); } catch(e) {} fullChart = null; }
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> ' + selectedStock.name + ' 차트 데이터 불러오는 중...</div>';
+
+  const data = await fetchChartData(selectedStock.code, count);
+  renderFullChart(data);
+  renderVolumeChartJS(data);
+}
+
+function renderFullChart(data) {
+  const container = document.getElementById('fullChartContainer');
+
+  // Destroy previous chart instance
+  if (fullChart) { try { fullChart.remove(); } catch(e) {} fullChart = null; }
+  container.innerHTML = '';
+
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="loading">차트 데이터를 불러올 수 없습니다. 네이버 금융 접근이 필요합니다.</div>';
+    return;
+  }
+
+  // Ensure container has dimensions (tab must be visible)
+  const w = container.clientWidth || container.offsetWidth || 800;
+
+  fullChart = LightweightCharts.createChart(container, {
+    width: w,
+    height: 520,
+    layout: { background: { color: '#131722' }, textColor: '#94a3b8' },
+    grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#2a3550' },
+    timeScale: { borderColor: '#2a3550', timeVisible: false },
+    localization: { priceFormatter: p => p.toLocaleString() + '원' }
+  });
+
+  fullCandleSeries = fullChart.addCandlestickSeries({
+    upColor: '#ef4444', downColor: '#3b82f6',
+    borderUpColor: '#ef4444', borderDownColor: '#3b82f6',
+    wickUpColor: '#ef4444', wickDownColor: '#3b82f6',
+  });
+  fullCandleSeries.setData(data.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
+
+  // Moving averages
+  const ma5 = calcMA(data, 5);
+  const ma20 = calcMA(data, 20);
+
+  const ma5Series = fullChart.addLineSeries({ color: '#f59e0b', lineWidth: 1 });
+  ma5Series.setData(ma5);
+  const ma20Series = fullChart.addLineSeries({ color: '#8b5cf6', lineWidth: 1 });
+  ma20Series.setData(ma20);
+
+  // Volume
+  fullVolumeSeries = fullChart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: '' });
+  fullChart.priceScale('').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+  fullVolumeSeries.setData(data.map(d => ({
+    time: d.time, value: d.volume,
+    color: d.close >= d.open ? 'rgba(239,68,68,0.3)' : 'rgba(59,130,246,0.3)'
+  })));
+
+  fullChart.timeScale().fitContent();
+
+  new ResizeObserver(() => {
+    if (fullChart) fullChart.applyOptions({ width: container.clientWidth });
+  }).observe(container);
+}
+
+function calcMA(data, period) {
+  const result = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0;
+    for (let j = 0; j < period; j++) sum += data[i - j].close;
+    result.push({ time: data[i].time, value: Math.round(sum / period) });
+  }
+  return result;
+}
+
+// ============================================
+// CHART.JS CHARTS (Analysis)
+// ============================================
+function renderVolumeChartJS(data) {
+  const ctx = document.getElementById('volumeChart');
+  if (!ctx) return;
+  if (volumeChartJS) volumeChartJS.destroy();
+
+  const last10 = data ? data.slice(-10) : [];
+  if (last10.length === 0) return;
+
+  volumeChartJS = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: last10.map(d => d.time.substring(5)),
+      datasets: [{
+        label: '거래량',
+        data: last10.map(d => d.volume),
+        backgroundColor: last10.map(d => d.close >= d.open ? 'rgba(239,68,68,0.7)' : 'rgba(59,130,246,0.7)'),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => (c.raw/10000).toFixed(0)+'만주' } } },
+      scales: {
+        x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', font: { size: 11 }, callback: v => (v/10000).toFixed(0)+'만' } }
+      }
+    }
+  });
+}
+
+async function renderAnalysisCharts() {
+  // Change rate chart
+  const ctx1 = document.getElementById('changeRateChart');
+  if (changeRateChartJS) changeRateChartJS.destroy();
+  if (ctx1) {
+    const loaded = watchlist.filter(s => s.price > 0);
+    changeRateChartJS = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: loaded.map(s => s.name),
+        datasets: [{ label: '등락률(%)', data: loaded.map(s => s.changePercent),
+          backgroundColor: loaded.map(s => s.changePercent >= 0 ? 'rgba(239,68,68,0.8)' : 'rgba(59,130,246,0.8)'),
+          borderRadius: 6 }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw.toFixed(2)+'%' } } },
+        scales: {
+          x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', callback: v => v+'%' } },
+          y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 12, weight: '500' } } }
+        }
+      }
+    });
+  }
+
+  // Volume compare doughnut
+  const ctx2 = document.getElementById('volumeCompareChart');
+  if (volumeCompareChartJS) volumeCompareChartJS.destroy();
+  if (ctx2) {
+    const loaded = watchlist.filter(s => s.volume > 0);
+    volumeCompareChartJS = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: loaded.map(s => s.name),
+        datasets: [{ data: loaded.map(s => s.volume),
+          backgroundColor: loaded.map((s,i) => (s.color||STOCK_COLORS[i])+'CC'), borderWidth: 0, hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, padding: 16 } },
+          tooltip: { callbacks: { label: c => c.label+': '+(c.raw/10000).toFixed(0)+'만주' } }
+        }
+      }
+    });
+  }
+
+  // Multi-line comparison chart
+  const ctx3 = document.getElementById('comparisonChart');
+  if (comparisonChartJS) comparisonChartJS.destroy();
+  if (ctx3) {
+    const datasets = [];
+    const allLabels = new Set();
+
+    for (let i = 0; i < Math.min(watchlist.length, 5); i++) {
+      const s = watchlist[i];
+      const data = await fetchChartData(s.code, 30);
+      if (data && data.length > 0) {
+        const base = data[0].close;
+        const normalized = data.map(d => ({ time: d.time, val: ((d.close - base) / base * 100) }));
+        normalized.forEach(d => allLabels.add(d.time));
+        datasets.push({
+          label: s.name, data: normalized.map(d => d.val),
+          borderColor: s.color || STOCK_COLORS[i], backgroundColor: 'transparent',
+          borderWidth: 2, pointRadius: 0, tension: 0.3
+        });
+      }
+    }
+
+    const sortedLabels = [...allLabels].sort();
+    comparisonChartJS = new Chart(ctx3, {
+      type: 'line',
+      data: { labels: sortedLabels.map(l => l.substring(5)), datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true } } },
+        scales: {
+          x: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', maxTicksLimit: 10 } },
+          y: { grid: { color: 'rgba(42,53,80,0.3)' }, ticks: { color: '#64748b', callback: v => v.toFixed(1)+'%' } }
+        },
+        interaction: { mode: 'index', intersect: false }
+      }
+    });
+  }
+}
+
+// ============================================
+// STOCK SELECTION
+// ============================================
+function selectStock(code) {
+  selectedStock = watchlist.find(s => s.code === code);
+  if (!selectedStock) return;
+  document.getElementById('selectedStockName').textContent = selectedStock.name;
+  // Sync chart dropdown
+  const chartSelect = document.getElementById('chartStockSelect');
+  if (chartSelect) chartSelect.value = code;
+  renderWatchlist();
+  loadMiniChartData();
+}
+
+// ============================================
+// NEWS
+// ============================================
+async function loadAllNews() {
+  allNews = [];
+  const filter = document.getElementById('newsStockFilter').value;
+  const stocks = filter === 'all' ? watchlist : watchlist.filter(s => s.code === filter);
+
+  const promises = stocks.map(async (stock) => {
+    const news = await fetchNewsForStock(stock);
+    allNews.push(...news);
+  });
+  await Promise.all(promises);
+
+  allNews.sort((a, b) => new Date(b.date) - new Date(a.date));
+  renderNewsList(document.getElementById('fullNewsList'), allNews);
+  renderNewsList(document.getElementById('latestNewsList'), allNews.slice(0, 5));
+  document.getElementById('newsUpdateTime').textContent =
+    new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }) + ' 업데이트';
+}
+
+async function fetchNewsForStock(stock) {
+  try {
+    const query = encodeURIComponent(stock.name + ' 주식');
+    const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=ko&gl=KR&ceid=KR:ko`;
+    const text = await fetchWithProxy(rssUrl);
+    if (text) {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, 'text/xml');
+      const items = xml.querySelectorAll('item');
+      const news = [];
+      items.forEach((item, i) => {
+        if (i >= 5) return;
+        news.push({
+          title: (item.querySelector('title')?.textContent || '').replace(/ - [^-]+$/, ''),
+          link: item.querySelector('link')?.textContent || '#',
+          date: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
+          source: item.querySelector('source')?.textContent || '뉴스',
+          stock: stock.name, stockCode: stock.code
+        });
+      });
+      if (news.length > 0) return news;
+    }
+  } catch(e) {}
+
+  // Fallback: link to Naver search
+  return [{
+    title: `${stock.name} 최신 뉴스 보기 (네이버 금융)`,
+    link: `https://finance.naver.com/item/news.naver?code=${stock.code}`,
+    date: new Date().toISOString(),
+    source: '네이버 금융',
+    stock: stock.name, stockCode: stock.code
+  }];
+}
+
+function renderNewsList(container, news) {
+  if (!news || news.length === 0) {
+    container.innerHTML = '<li class="empty-state"><p>뉴스가 없습니다</p></li>';
+    return;
+  }
+  container.innerHTML = news.map(item => {
+    const timeAgo = getTimeAgo(new Date(item.date));
+    return `<li class="news-item" onclick="window.open('${item.link}','_blank')">
+      <div class="news-source"><span class="news-tag">${item.stock}</span>${item.source}</div>
+      <div class="news-title">${item.title}</div>
+      <div class="news-meta"><span>${timeAgo}</span></div>
+    </li>`;
+  }).join('');
+}
+
+function getTimeAgo(date) {
+  const diff = Math.floor((new Date() - date) / 1000);
+  if (diff < 60) return '방금 전';
+  if (diff < 3600) return Math.floor(diff/60)+'분 전';
+  if (diff < 86400) return Math.floor(diff/3600)+'시간 전';
+  return Math.floor(diff/86400)+'일 전';
+}
+
+function filterNews() {
+  const q = document.getElementById('newsSearch').value.toLowerCase();
+  const filtered = allNews.filter(n => n.title.toLowerCase().includes(q) || n.stock.toLowerCase().includes(q));
+  renderNewsList(document.getElementById('fullNewsList'), filtered);
+}
+
+// ============================================
+// WATCHLIST MANAGEMENT
+// ============================================
+function showAddStockModal() { document.getElementById('addStockModal').classList.add('show'); document.getElementById('addStockName').focus(); }
+function closeAddStockModal() { document.getElementById('addStockModal').classList.remove('show'); document.getElementById('addStockName').value=''; document.getElementById('addStockCode').value=''; }
+
+function quickAdd(name, code) {
+  document.getElementById('addStockName').value = name;
+  document.getElementById('addStockCode').value = code;
+}
+
+function addStock() {
+  const name = document.getElementById('addStockName').value.trim();
+  const code = document.getElementById('addStockCode').value.trim();
+  if (!name || !code) return showToast('종목명과 종목코드를 입력해주세요');
+  if (code.length !== 6 || isNaN(code)) return showToast('종목코드는 숫자 6자리입니다');
+  if (watchlist.find(s => s.code === code)) return showToast('이미 추가된 종목입니다');
+
+  const newStock = { name, code, color: STOCK_COLORS[watchlist.length % STOCK_COLORS.length], price: 0, change: 0, changePercent: 0, volume: 0, dataOk: false };
+  watchlist.push(newStock);
+  closeAddStockModal();
+  saveToStorage();
+  updateSelectors();
+  renderWatchlist();        // 즉시 UI 반영 (가격은 '로딩중...'으로 표시)
+  showToast(`${name} 추가 완료 — 데이터 불러오는 중...`);
+
+  // 새 종목만 개별 fetch → 완료 후 UI 업데이트
+  fetchSingleStock(newStock).then(() => {
+    renderWatchlist();
+    updateStats();
+    updateCompareTable();
+    saveToStorage();
+  });
+}
+
+function removeStock(code) {
+  const s = watchlist.find(s => s.code === code);
+  if (!s || !confirm(`${s.name} 종목을 삭제할까요?`)) return;
+  watchlist = watchlist.filter(s => s.code !== code);
+  if (selectedStock?.code === code) selectedStock = watchlist[0] || null;
+  saveToStorage(); renderWatchlist(); updateSelectors();
+  if (selectedStock) loadMiniChartData();
+  showToast(`${s.name} 삭제됨`);
+}
+
+function updateSelectors() {
+  document.getElementById('newsStockFilter').innerHTML = '<option value="all">전체 종목</option>' + watchlist.map(s => `<option value="${s.code}">${s.name}</option>`).join('');
+  document.getElementById('memoStock').innerHTML = '<option value="general">일반 메모</option>' + watchlist.map(s => `<option value="${s.code}">${s.name}</option>`).join('');
+  // Chart stock selector
+  const chartSelect = document.getElementById('chartStockSelect');
+  chartSelect.innerHTML = watchlist.map(s => `<option value="${s.code}" ${selectedStock && selectedStock.code === s.code ? 'selected' : ''}>${s.name}</option>`).join('');
+}
+
+function selectChartStock(code) {
+  selectedStock = watchlist.find(s => s.code === code);
+  if (!selectedStock) return;
+  document.getElementById('selectedStockName').textContent = selectedStock.name;
+  renderWatchlist();
+  loadMiniChartData();
+  loadFullChartData(90);
+}
+
+// ============================================
+// MEMO
+// ============================================
+function updateMemoDate() { document.getElementById('memoDate').textContent = new Date().toLocaleString('ko-KR'); }
+
+function saveMemo() {
+  const text = document.getElementById('memoText').value.trim();
+  if (!text) return showToast('메모 내용을 입력해주세요');
+  const code = document.getElementById('memoStock').value;
+  const stock = code === 'general' ? { name: '일반', code: 'general' } : watchlist.find(s => s.code === code);
+  memos.unshift({ id: Date.now(), text, stock: stock.name, stockCode: stock.code, date: new Date().toISOString(), price: stock.price || null });
+  document.getElementById('memoText').value = '';
+  saveToStorage(); renderMemos(); showToast('메모 저장 완료');
+}
+
+function renderMemos() {
+  const list = document.getElementById('memoList');
+  if (memos.length === 0) { list.innerHTML = '<li class="empty-state"><p>아직 메모가 없습니다</p></li>'; return; }
+  list.innerHTML = memos.map(m => {
+    const d = new Date(m.date).toLocaleString('ko-KR', { year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit' });
+    return `<li class="memo-item">
+      <div class="memo-item-header">
+        <span class="memo-item-stock">${m.stock} ${m.price ? '('+m.price.toLocaleString()+'원)' : ''}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="memo-item-date">${d}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteMemo(${m.id})" style="padding:4px 8px;">×</button>
+        </div>
+      </div>
+      <div class="memo-item-text">${m.text.replace(/\n/g,'<br>')}</div>
+    </li>`;
+  }).join('');
+}
+
+function deleteMemo(id) { memos = memos.filter(m => m.id !== id); saveToStorage(); renderMemos(); }
+function clearAllMemos() { if (!confirm('모든 메모를 삭제할까요?')) return; memos = []; saveToStorage(); renderMemos(); }
+
+// ============================================
+// UI
+// ============================================
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (name === 'chart') setTimeout(() => loadFullChartData(90), 250);
+  if (name === 'analysis') setTimeout(renderAnalysisCharts, 250);
+}
+
+function refreshData() {
+  const btn = document.querySelector('.refresh-btn');
+  btn.classList.add('spinning');
+  Promise.all([fetchAllStockData(), fetchKospiIndex(), loadAllNews()]).then(() => {
+    setTimeout(() => btn.classList.remove('spinning'), 1000);
+  });
+  showToast('새로고침 완료');
+}
+
+function toggleGuide(toggleEl) {
+  const arrow = toggleEl.querySelector('.arrow');
+  const body = toggleEl.nextElementSibling;
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    arrow.classList.add('open');
+  } else {
+    body.classList.add('collapsed');
+    arrow.classList.remove('open');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAddStockModal();
+  if (e.key === 'r' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); refreshData(); }
+});
+document.getElementById('addStockModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddStockModal(); });
+document.getElementById('addStockCode').addEventListener('keydown', e => { if (e.key === 'Enter') addStock(); });
+
+// ============================================
+// START
+// ============================================
+init();
+</script>
+</body>
+</html>
