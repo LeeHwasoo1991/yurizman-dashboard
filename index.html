@@ -409,6 +409,81 @@
   .realestate-table .area-col { color: var(--text-secondary); }
   .realestate-table .floor-col { color: var(--text-muted); }
 
+  /* 아파트 검색바 */
+  .apt-search-bar {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 14px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+  }
+  .apt-search-bar:focus-within { border-color: var(--accent-blue); }
+  .apt-search-bar .search-icon { color: var(--text-muted); font-size: 14px; flex-shrink: 0; }
+  .apt-search-bar input {
+    flex: 1; background: none; border: none; outline: none; color: var(--text-primary);
+    font-size: 13px; font-family: inherit;
+  }
+  .apt-search-bar input::placeholder { color: var(--text-muted); }
+  .apt-search-bar .search-clear {
+    background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;
+    padding: 0 4px; display: none; transition: color 0.2s;
+  }
+  .apt-search-bar .search-clear:hover { color: var(--text-primary); }
+  .apt-search-count { font-size: 12px; color: var(--accent-blue); margin-top: 8px; display: none; }
+  .apt-search-count.visible { display: block; }
+  .realestate-table tr.search-highlight td { background: rgba(59,130,246,0.1); }
+  .realestate-table tr.search-hidden { display: none; }
+  .apt-name-match { color: var(--accent-blue); font-weight: 600; }
+
+  /* 필터 바 */
+  .apt-filter-bar {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .apt-filter-bar .filter-chip {
+    display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 20px;
+    font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+    white-space: nowrap; user-select: none;
+  }
+  .apt-filter-bar .filter-chip:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+  .apt-filter-bar .filter-chip.active { border-color: var(--accent-blue); background: rgba(59,130,246,0.1); color: var(--accent-blue-light); }
+  .apt-filter-bar .filter-chip .chip-label { font-weight: 500; color: var(--text-muted); font-size: 11px; }
+  .apt-filter-bar select {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 20px;
+    padding: 6px 28px 6px 12px; font-size: 12px; color: var(--text-secondary); outline: none;
+    cursor: pointer; transition: border-color 0.2s; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238494a7' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .apt-filter-bar select:hover, .apt-filter-bar select:focus { border-color: var(--accent-blue); }
+  .apt-filter-bar .filter-reset {
+    background: none; border: 1px solid rgba(239,68,68,0.3); border-radius: 20px;
+    padding: 6px 12px; font-size: 11px; color: var(--accent-red); cursor: pointer;
+    transition: all 0.2s; display: none;
+  }
+  .apt-filter-bar .filter-reset:hover { background: rgba(239,68,68,0.1); }
+  .apt-filter-bar .filter-reset.visible { display: inline-flex; }
+
+  /* 전세/월세 좌우 배치 */
+  .lease-split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .lease-split .lease-panel {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .lease-split .lease-panel-header {
+    padding: 14px 16px; font-size: 14px; font-weight: 600; color: var(--text-primary);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .lease-split .lease-panel-header .badge-count {
+    font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px;
+  }
+  .lease-split .lease-panel .table-wrap {
+    max-height: 500px; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .lease-split { grid-template-columns: 1fr; }
+  }
+
   .api-key-section { padding: 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 16px; }
   .api-key-section h3 { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
   .api-key-input { width: 100%; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text-primary); font-size: 12px; outline: none; font-family: 'Courier New', monospace; }
@@ -1147,6 +1222,30 @@
             <button class="btn btn-primary btn-sm" onclick="loadTransactionData()">조회</button>
           </div>
         </div>
+        <div class="apt-search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="transactionSearch" placeholder="아파트명으로 검색 (예: 래미안, 은마)" oninput="filterAptTable('transaction')">
+          <button class="search-clear" id="transactionSearchClear" onclick="clearAptSearch('transaction')">✕</button>
+        </div>
+        <div class="apt-filter-bar" id="transactionFilters">
+          <select id="transactionAreaFilter" onchange="filterAptTable('transaction')">
+            <option value="">📐 평수 전체</option>
+            <option value="0-49">10평대 이하 (~49m²)</option>
+            <option value="49-66">15~20평 (49~66m²)</option>
+            <option value="66-99">20~30평 (66~99m²)</option>
+            <option value="99-132">30~40평 (99~132m²)</option>
+            <option value="132-">40평 이상 (132m²~)</option>
+          </select>
+          <select id="transactionYearFilter" onchange="filterAptTable('transaction')">
+            <option value="">🏗️ 건축년도 전체</option>
+            <option value="-2000">2000년 이전</option>
+            <option value="2000-2010">2000~2010년</option>
+            <option value="2010-2020">2010~2020년</option>
+            <option value="2020-">2020년 이후</option>
+          </select>
+          <button class="filter-reset" id="transactionFilterReset" onclick="resetFilters('transaction')">필터 초기화</button>
+        </div>
+        <div class="apt-search-count" id="transactionSearchCount"></div>
         <div class="card-body">
           <div id="transactionTableContainer" class="loading"><div class="spinner"></div> 데이터 로딩중...</div>
         </div>
@@ -1224,6 +1323,30 @@
             <button class="btn btn-primary btn-sm" onclick="loadListingData()">조회</button>
           </div>
         </div>
+        <div class="apt-search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="listingSearch" placeholder="아파트명으로 검색 (예: 래미안, 은마)" oninput="filterAptTable('listing')">
+          <button class="search-clear" id="listingSearchClear" onclick="clearAptSearch('listing')">✕</button>
+        </div>
+        <div class="apt-filter-bar" id="listingFilters">
+          <select id="listingAreaFilter" onchange="filterAptTable('listing')">
+            <option value="">📐 평수 전체</option>
+            <option value="0-49">10평대 이하 (~49m²)</option>
+            <option value="49-66">15~20평 (49~66m²)</option>
+            <option value="66-99">20~30평 (66~99m²)</option>
+            <option value="99-132">30~40평 (99~132m²)</option>
+            <option value="132-">40평 이상 (132m²~)</option>
+          </select>
+          <select id="listingYearFilter" onchange="filterAptTable('listing')">
+            <option value="">🏗️ 건축년도 전체</option>
+            <option value="-2000">2000년 이전</option>
+            <option value="2000-2010">2000~2010년</option>
+            <option value="2010-2020">2010~2020년</option>
+            <option value="2020-">2020년 이후</option>
+          </select>
+          <button class="filter-reset" id="listingFilterReset" onclick="resetFilters('listing')">필터 초기화</button>
+        </div>
+        <div class="apt-search-count" id="listingSearchCount"></div>
         <div class="card-body">
           <div id="listingContainer" class="loading"><div class="spinner"></div> 데이터 로딩중...</div>
         </div>
@@ -1250,6 +1373,23 @@
             <button class="btn btn-primary btn-sm" onclick="loadLeaseData()">조회</button>
           </div>
         </div>
+        <div class="apt-search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="leaseSearch" placeholder="아파트명으로 검색 (예: 래미안, 은마)" oninput="filterAptTable('lease')">
+          <button class="search-clear" id="leaseSearchClear" onclick="clearAptSearch('lease')">✕</button>
+        </div>
+        <div class="apt-filter-bar" id="leaseFilters">
+          <select id="leaseAreaFilter" onchange="filterAptTable('lease')">
+            <option value="">📐 평수 전체</option>
+            <option value="0-49">10평대 이하 (~49m²)</option>
+            <option value="49-66">15~20평 (49~66m²)</option>
+            <option value="66-99">20~30평 (66~99m²)</option>
+            <option value="99-132">30~40평 (99~132m²)</option>
+            <option value="132-">40평 이상 (132m²~)</option>
+          </select>
+          <button class="filter-reset" id="leaseFilterReset" onclick="resetFilters('lease')">필터 초기화</button>
+        </div>
+        <div class="apt-search-count" id="leaseSearchCount"></div>
         <div class="card-body">
           <div id="leaseContainer" class="loading"><div class="spinner"></div> 데이터 로딩중...</div>
         </div>
@@ -1442,13 +1582,14 @@ async function loadTransactionData() {
         const dealYear = getXmlText(item, 'dealYear', '년');
         const dealMonth = getXmlText(item, 'dealMonth', '월');
         const dealDay = getXmlText(item, 'dealDay', '일');
+        const buildYear = getXmlText(item, 'buildYear', '건축년도') || '';
 
         const formatYmd = `${dealYear}.${dealMonth.padStart(2,'0')}.${dealDay.padStart(2,'0')}`;
         const formattedPrice = dealAmount.toLocaleString();
 
         totalPrice += dealAmount;
 
-        html += `<tr>
+        html += `<tr data-area="${parseFloat(area) || 0}" data-year="${buildYear}">
           <td>${aptName}</td>
           <td class="area-col">${parseFloat(area).toFixed(1)}</td>
           <td class="floor-col">${floor}층</td>
@@ -1479,40 +1620,40 @@ function showSampleTransactionData() {
   const districtName = document.getElementById('transactionDistrict').selectedOptions[0]?.text || '강남구';
   const sampleSets = {
     '강남구': [
-      { name: '래미안 블레스티지', area: '84.99', floor: '15', price: '2,850,000', date: '2026.03.15' },
-      { name: '대치 은마아파트', area: '76.79', floor: '8', price: '2,250,000', date: '2026.03.14' },
-      { name: '개포 래미안 포레스트', area: '101.04', floor: '22', price: '3,050,000', date: '2026.03.13' },
-      { name: '도곡 렉슬', area: '84.66', floor: '12', price: '2,420,000', date: '2026.03.12' },
-      { name: '대치 삼성래미안', area: '114.87', floor: '18', price: '3,750,000', date: '2026.03.11' },
-      { name: '압구정 현대아파트', area: '196.00', floor: '5', price: '5,200,000', date: '2026.03.10' },
+      { name: '래미안 블레스티지', area: '84.99', floor: '15', price: '2,850,000', date: '2026.03.15', year: '2013' },
+      { name: '대치 은마아파트', area: '76.79', floor: '8', price: '2,250,000', date: '2026.03.14', year: '1979' },
+      { name: '개포 래미안 포레스트', area: '101.04', floor: '22', price: '3,050,000', date: '2026.03.13', year: '2021' },
+      { name: '도곡 렉슬', area: '84.66', floor: '12', price: '2,420,000', date: '2026.03.12', year: '2003' },
+      { name: '대치 삼성래미안', area: '114.87', floor: '18', price: '3,750,000', date: '2026.03.11', year: '2008' },
+      { name: '압구정 현대아파트', area: '196.00', floor: '5', price: '5,200,000', date: '2026.03.10', year: '1976' },
     ],
     '서초구': [
-      { name: '반포 래미안 원베일리', area: '84.90', floor: '20', price: '3,500,000', date: '2026.03.15' },
-      { name: '반포 자이', area: '109.52', floor: '14', price: '3,100,000', date: '2026.03.14' },
-      { name: '서초 그랑자이', area: '84.98', floor: '10', price: '2,350,000', date: '2026.03.13' },
-      { name: '잠원 한신', area: '78.51', floor: '7', price: '1,950,000', date: '2026.03.12' },
-      { name: '방배 래미안', area: '59.96', floor: '16', price: '1,650,000', date: '2026.03.11' },
+      { name: '반포 래미안 원베일리', area: '84.90', floor: '20', price: '3,500,000', date: '2026.03.15', year: '2023' },
+      { name: '반포 자이', area: '109.52', floor: '14', price: '3,100,000', date: '2026.03.14', year: '2009' },
+      { name: '서초 그랑자이', area: '84.98', floor: '10', price: '2,350,000', date: '2026.03.13', year: '2019' },
+      { name: '잠원 한신', area: '78.51', floor: '7', price: '1,950,000', date: '2026.03.12', year: '1997' },
+      { name: '방배 래미안', area: '59.96', floor: '16', price: '1,650,000', date: '2026.03.11', year: '2005' },
     ],
     '송파구': [
-      { name: '잠실 엘스', area: '84.82', floor: '18', price: '2,650,000', date: '2026.03.15' },
-      { name: '잠실 리센츠', area: '84.99', floor: '12', price: '2,550,000', date: '2026.03.14' },
-      { name: '잠실 파크리오', area: '84.40', floor: '21', price: '2,350,000', date: '2026.03.13' },
-      { name: '헬리오시티', area: '84.98', floor: '25', price: '2,100,000', date: '2026.03.12' },
-      { name: '올림픽선수촌', area: '107.38', floor: '8', price: '2,800,000', date: '2026.03.11' },
+      { name: '잠실 엘스', area: '84.82', floor: '18', price: '2,650,000', date: '2026.03.15', year: '2008' },
+      { name: '잠실 리센츠', area: '84.99', floor: '12', price: '2,550,000', date: '2026.03.14', year: '2008' },
+      { name: '잠실 파크리오', area: '84.40', floor: '21', price: '2,350,000', date: '2026.03.13', year: '2008' },
+      { name: '헬리오시티', area: '84.98', floor: '25', price: '2,100,000', date: '2026.03.12', year: '2018' },
+      { name: '올림픽선수촌', area: '107.38', floor: '8', price: '2,800,000', date: '2026.03.11', year: '1988' },
     ],
     '마포구': [
-      { name: '마포 래미안 푸르지오', area: '84.59', floor: '14', price: '1,750,000', date: '2026.03.15' },
-      { name: '아현 아이파크', area: '84.84', floor: '19', price: '1,680,000', date: '2026.03.14' },
-      { name: '마포 프레스티지자이', area: '59.98', floor: '11', price: '1,350,000', date: '2026.03.13' },
-      { name: '공덕 자이', area: '84.96', floor: '22', price: '1,620,000', date: '2026.03.12' },
-      { name: '상암 월드컵파크', area: '101.42', floor: '8', price: '1,450,000', date: '2026.03.11' },
+      { name: '마포 래미안 푸르지오', area: '84.59', floor: '14', price: '1,750,000', date: '2026.03.15', year: '2014' },
+      { name: '아현 아이파크', area: '84.84', floor: '19', price: '1,680,000', date: '2026.03.14', year: '2014' },
+      { name: '마포 프레스티지자이', area: '59.98', floor: '11', price: '1,350,000', date: '2026.03.13', year: '2018' },
+      { name: '공덕 자이', area: '84.96', floor: '22', price: '1,620,000', date: '2026.03.12', year: '2015' },
+      { name: '상암 월드컵파크', area: '101.42', floor: '8', price: '1,450,000', date: '2026.03.11', year: '2005' },
     ],
     '용산구': [
-      { name: '한남 더힐', area: '244.81', floor: '3', price: '7,000,000', date: '2026.03.15' },
-      { name: '이촌 래미안', area: '84.97', floor: '15', price: '2,100,000', date: '2026.03.14' },
-      { name: '용산 파크타워', area: '84.90', floor: '30', price: '2,450,000', date: '2026.03.13' },
-      { name: '이촌 한가람', area: '107.33', floor: '10', price: '2,350,000', date: '2026.03.12' },
-      { name: '한강 대우', area: '84.96', floor: '18', price: '1,950,000', date: '2026.03.11' },
+      { name: '한남 더힐', area: '244.81', floor: '3', price: '7,000,000', date: '2026.03.15', year: '2011' },
+      { name: '이촌 래미안', area: '84.97', floor: '15', price: '2,100,000', date: '2026.03.14', year: '2017' },
+      { name: '용산 파크타워', area: '84.90', floor: '30', price: '2,450,000', date: '2026.03.13', year: '2011' },
+      { name: '이촌 한가람', area: '107.33', floor: '10', price: '2,350,000', date: '2026.03.12', year: '1999' },
+      { name: '한강 대우', area: '84.96', floor: '18', price: '1,950,000', date: '2026.03.11', year: '1997' },
     ],
   };
   const sampleData = sampleSets[districtName] || sampleSets['강남구'];
@@ -1521,7 +1662,7 @@ function showSampleTransactionData() {
   html += '<table class="realestate-table"><thead><tr><th>아파트명</th><th>면적(m²)</th><th>층</th><th>거래금액</th><th>거래일</th></tr></thead><tbody>';
 
   sampleData.forEach(item => {
-    html += `<tr>
+    html += `<tr data-area="${parseFloat(item.area) || 0}" data-year="${item.year || ''}">
       <td>${item.name}</td>
       <td class="area-col">${item.area}</td>
       <td class="floor-col">${item.floor}</td>
@@ -1696,7 +1837,7 @@ async function loadListingData() {
           ? `${Math.floor(apt.price / 10000)}억 ${apt.price % 10000 > 0 ? (apt.price % 10000).toLocaleString() + '만' : ''}`
           : `${apt.price.toLocaleString()}만원`;
 
-        html += `<tr>
+        html += `<tr data-area="${parseFloat(apt.area) || 0}" data-year="${apt.buildYear}">
           <td>${apt.name}</td>
           <td class="area-col">${apt.area}</td>
           <td class="floor-col">${apt.floor}층</td>
@@ -1787,13 +1928,14 @@ async function loadLeaseData() {
         }
       });
 
-      let html = '<div style="display:block;">';
+      let html = '<div class="lease-split">';
 
-      // 전세 section
-      html += `<h3 style="font-size:15px;font-weight:600;color:var(--text-primary);margin:20px 0 10px 0;padding-bottom:8px;border-bottom:2px solid var(--accent-blue-light)">🏠 전세 실거래 (${jeonseCount}건)</h3>`;
-      html += '<table class="realestate-table"><thead><tr><th>아파트명</th><th>면적(m²)</th><th>층</th><th>보증금</th><th>거래일</th></tr></thead><tbody>';
+      // 전세 패널 (왼쪽)
+      html += '<div class="lease-panel">';
+      html += `<div class="lease-panel-header" style="border-bottom:2px solid var(--accent-blue-light);">🏠 전세 실거래 <span class="badge-count" style="background:rgba(96,165,250,0.15);color:var(--accent-blue-light);">${jeonseCount}건</span></div>`;
+      html += '<div class="table-wrap"><table class="realestate-table"><thead><tr><th>아파트명</th><th>면적</th><th>층</th><th>보증금</th><th>거래일</th></tr></thead><tbody>';
       jeonseItems.forEach(item => {
-        html += `<tr>
+        html += `<tr data-area="${parseFloat(item.area) || 0}">
           <td>${item.aptName}</td>
           <td class="area-col">${parseFloat(item.area).toFixed(1)}</td>
           <td class="floor-col">${item.floor}</td>
@@ -1801,23 +1943,23 @@ async function loadLeaseData() {
           <td>${item.dealYear}.${String(item.dealMonth).padStart(2,'0')}.${String(item.dealDay).padStart(2,'0')}</td>
         </tr>`;
       });
-      html += '</tbody></table>';
+      html += '</tbody></table></div></div>';
 
-      // 월세 section
-      html += `<h3 style="font-size:15px;font-weight:600;color:var(--text-primary);margin:20px 0 10px 0;padding-bottom:8px;border-bottom:2px solid var(--accent-yellow)">🏢 월세 실거래 (${monthseItems.length}건)</h3>`;
-      html += '<table class="realestate-table"><thead><tr><th>아파트명</th><th>면적(m²)</th><th>층</th><th>보증금</th><th>월세</th><th>거래일</th></tr></thead><tbody>';
+      // 월세 패널 (오른쪽)
+      html += '<div class="lease-panel">';
+      html += `<div class="lease-panel-header" style="border-bottom:2px solid var(--accent-yellow);">🏢 월세 실거래 <span class="badge-count" style="background:rgba(245,158,11,0.15);color:var(--accent-yellow);">${monthseItems.length}건</span></div>`;
+      html += '<div class="table-wrap"><table class="realestate-table"><thead><tr><th>아파트명</th><th>면적</th><th>층</th><th>보증금</th><th>월세</th></tr></thead><tbody>';
       monthseItems.forEach(item => {
-        html += `<tr>
+        html += `<tr data-area="${parseFloat(item.area) || 0}">
           <td>${item.aptName}</td>
           <td class="area-col">${parseFloat(item.area).toFixed(1)}</td>
           <td class="floor-col">${item.floor}</td>
           <td class="price-col">${item.depositNum.toLocaleString()}만원</td>
           <td class="price-col">${item.rentNum.toLocaleString()}만원</td>
-          <td>${item.dealYear}.${String(item.dealMonth).padStart(2,'0')}.${String(item.dealDay).padStart(2,'0')}</td>
         </tr>`;
       });
-      html += '</tbody></table>';
-      html += '</div>'; // wrapper div 닫기
+      html += '</tbody></table></div></div>';
+      html += '</div>'; // lease-split 닫기
 
       container.innerHTML = html;
 
@@ -1849,38 +1991,38 @@ function showSampleLeaseData() {
   let jeonseItems = sampleLeases.filter(l => l.type === '전세');
   let monthseItems = sampleLeases.filter(l => l.type === '월세');
 
-  let html = '<div style="display:block;">';
-  html += '<div style="padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;margin-bottom:12px;border-left:3px solid #f59e0b;"><p style="font-size:12px;color:var(--accent-yellow);">📌 이것은 샘플 데이터입니다</p></div>';
+  let html = '<div style="padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;margin-bottom:12px;border-left:3px solid #f59e0b;"><p style="font-size:12px;color:var(--accent-yellow);">📌 이것은 샘플 데이터입니다</p></div>';
+  html += '<div class="lease-split">';
 
-  // 전세 section
-  html += `<h3 style="font-size:15px;font-weight:600;color:var(--text-primary);margin:20px 0 10px 0;padding-bottom:8px;border-bottom:2px solid var(--accent-blue-light)">🏠 전세 실거래 (${jeonseItems.length}건)</h3>`;
-  html += '<table class="realestate-table"><thead><tr><th>아파트명</th><th>면적(m²)</th><th>층</th><th>보증금</th><th>거래일</th></tr></thead><tbody>';
+  // 전세 패널 (왼쪽)
+  html += '<div class="lease-panel">';
+  html += `<div class="lease-panel-header" style="border-bottom:2px solid var(--accent-blue-light);">🏠 전세 실거래 <span class="badge-count" style="background:rgba(96,165,250,0.15);color:var(--accent-blue-light);">${jeonseItems.length}건</span></div>`;
+  html += '<div class="table-wrap"><table class="realestate-table"><thead><tr><th>아파트명</th><th>면적</th><th>층</th><th>보증금</th></tr></thead><tbody>';
   jeonseItems.forEach(item => {
-    html += `<tr>
+    html += `<tr data-area="${parseFloat(item.area) || 0}">
       <td>${item.title}</td>
       <td class="area-col">${item.area}</td>
       <td class="floor-col">${item.floor}</td>
       <td class="price-col">${(item.price * 10000).toLocaleString()}만원</td>
-      <td>2026.02.15</td>
     </tr>`;
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div></div>';
 
-  // 월세 section
-  html += `<h3 style="font-size:15px;font-weight:600;color:var(--text-primary);margin:20px 0 10px 0;padding-bottom:8px;border-bottom:2px solid var(--accent-yellow)">🏢 월세 실거래 (${monthseItems.length}건)</h3>`;
-  html += '<table class="realestate-table"><thead><tr><th>아파트명</th><th>면적(m²)</th><th>층</th><th>보증금</th><th>월세</th><th>거래일</th></tr></thead><tbody>';
+  // 월세 패널 (오른쪽)
+  html += '<div class="lease-panel">';
+  html += `<div class="lease-panel-header" style="border-bottom:2px solid var(--accent-yellow);">🏢 월세 실거래 <span class="badge-count" style="background:rgba(245,158,11,0.15);color:var(--accent-yellow);">${monthseItems.length}건</span></div>`;
+  html += '<div class="table-wrap"><table class="realestate-table"><thead><tr><th>아파트명</th><th>면적</th><th>층</th><th>보증금</th><th>월세</th></tr></thead><tbody>';
   monthseItems.forEach(item => {
-    html += `<tr>
+    html += `<tr data-area="${parseFloat(item.area) || 0}">
       <td>${item.title}</td>
       <td class="area-col">${item.area}</td>
       <td class="floor-col">${item.floor}</td>
       <td class="price-col">${(item.price * 10000).toLocaleString()}만원</td>
       <td class="price-col">${(item.monthlyRent * 10000).toLocaleString()}만원</td>
-      <td>2026.02.10</td>
     </tr>`;
   });
-  html += '</tbody></table>';
-  html += '</div>'; // wrapper 닫기
+  html += '</tbody></table></div></div>';
+  html += '</div>'; // lease-split 닫기
 
   container.innerHTML = html;
   document.getElementById('avgLeasePrice').textContent = '5.6억';
@@ -1990,6 +2132,148 @@ function loadPriceTrend() {
       }
     });
   }, 100);
+}
+
+// ============================================
+// 아파트 검색 & 필터 기능
+// ============================================
+function parseAreaFilter(val) {
+  if (!val) return null;
+  const parts = val.split('-');
+  return { min: parts[0] ? parseFloat(parts[0]) : 0, max: parts[1] ? parseFloat(parts[1]) : Infinity };
+}
+
+function parseYearFilter(val) {
+  if (!val) return null;
+  const parts = val.split('-');
+  return { min: parts[0] ? parseInt(parts[0]) : 0, max: parts[1] ? parseInt(parts[1]) : Infinity };
+}
+
+function filterAptTable(tabName) {
+  const searchInput = document.getElementById(`${tabName}Search`);
+  const clearBtn = document.getElementById(`${tabName}SearchClear`);
+  const countEl = document.getElementById(`${tabName}SearchCount`);
+  const resetBtn = document.getElementById(`${tabName}FilterReset`);
+  const keyword = searchInput.value.trim().toLowerCase();
+
+  // 필터 값 읽기
+  const areaSelect = document.getElementById(`${tabName}AreaFilter`);
+  const yearSelect = document.getElementById(`${tabName}YearFilter`);
+  const areaFilter = areaSelect ? parseAreaFilter(areaSelect.value) : null;
+  const yearFilter = yearSelect ? parseYearFilter(yearSelect.value) : null;
+
+  // X 버튼 표시/숨김
+  clearBtn.style.display = keyword ? 'block' : 'none';
+
+  // 필터 초기화 버튼 표시/숨김
+  const hasFilter = keyword || (areaSelect && areaSelect.value) || (yearSelect && yearSelect.value);
+  if (resetBtn) resetBtn.classList.toggle('visible', !!hasFilter);
+
+  // 컨테이너 ID 매핑
+  const containerMap = {
+    transaction: 'transactionTableContainer',
+    listing: 'listingContainer',
+    lease: 'leaseContainer'
+  };
+  const container = document.getElementById(containerMap[tabName]);
+  if (!container) return;
+
+  // 모든 테이블의 tbody tr을 대상으로 필터링
+  const tables = container.querySelectorAll('.realestate-table');
+  let totalRows = 0;
+  let matchedRows = 0;
+
+  tables.forEach(table => {
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const firstCell = row.querySelector('td');
+      if (!firstCell) return;
+      totalRows++;
+
+      // 원래 텍스트 복원 (하이라이트 제거)
+      if (firstCell.dataset.originalText === undefined) {
+        firstCell.dataset.originalText = firstCell.textContent;
+      }
+      const aptName = firstCell.dataset.originalText.toLowerCase();
+
+      // 1. 아파트명 검색
+      let nameMatch = true;
+      if (keyword) {
+        nameMatch = aptName.includes(keyword);
+      }
+
+      // 2. 평수 필터
+      let areaMatch = true;
+      if (areaFilter) {
+        const rowArea = parseFloat(row.dataset.area) || 0;
+        areaMatch = rowArea >= areaFilter.min && rowArea < areaFilter.max;
+      }
+
+      // 3. 건축년도 필터
+      let yearMatch = true;
+      if (yearFilter) {
+        const rowYear = parseInt(row.dataset.year) || 0;
+        if (rowYear === 0) {
+          yearMatch = false; // 건축년도 데이터 없으면 필터링에서 제외
+        } else {
+          yearMatch = rowYear >= yearFilter.min && rowYear < yearFilter.max;
+        }
+      }
+
+      const isMatch = nameMatch && areaMatch && yearMatch;
+
+      if (isMatch) {
+        row.classList.remove('search-hidden');
+        // 검색어 하이라이트
+        if (keyword && aptName.includes(keyword)) {
+          row.classList.add('search-highlight');
+          const original = firstCell.dataset.originalText;
+          const idx = original.toLowerCase().indexOf(keyword);
+          const matchedText = original.substring(idx, idx + keyword.length);
+          firstCell.innerHTML = original.substring(0, idx) +
+            '<span class="apt-name-match">' + matchedText + '</span>' +
+            original.substring(idx + keyword.length);
+        } else {
+          row.classList.remove('search-highlight');
+          firstCell.innerHTML = firstCell.dataset.originalText;
+        }
+        matchedRows++;
+      } else {
+        row.classList.add('search-hidden');
+        row.classList.remove('search-highlight');
+        firstCell.innerHTML = firstCell.dataset.originalText;
+      }
+    });
+  });
+
+  // 검색/필터 결과 수 표시
+  if (hasFilter) {
+    let filterDesc = [];
+    if (keyword) filterDesc.push(`"${searchInput.value.trim()}"`);
+    if (areaSelect && areaSelect.value) filterDesc.push(areaSelect.options[areaSelect.selectedIndex].text);
+    if (yearSelect && yearSelect.value) filterDesc.push(yearSelect.options[yearSelect.selectedIndex].text);
+    countEl.textContent = `🔍 ${filterDesc.join(' + ')} → ${matchedRows}건 / 전체 ${totalRows}건`;
+    countEl.classList.add('visible');
+  } else {
+    countEl.classList.remove('visible');
+  }
+}
+
+function clearAptSearch(tabName) {
+  const searchInput = document.getElementById(`${tabName}Search`);
+  searchInput.value = '';
+  filterAptTable(tabName);
+  searchInput.focus();
+}
+
+function resetFilters(tabName) {
+  const searchInput = document.getElementById(`${tabName}Search`);
+  const areaSelect = document.getElementById(`${tabName}AreaFilter`);
+  const yearSelect = document.getElementById(`${tabName}YearFilter`);
+  if (searchInput) searchInput.value = '';
+  if (areaSelect) areaSelect.value = '';
+  if (yearSelect) yearSelect.value = '';
+  filterAptTable(tabName);
 }
 
 function switchRealestateTab(tabName) {
